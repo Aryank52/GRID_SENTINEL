@@ -1,0 +1,12 @@
+E:\PROJECTS\GRID_SENTINEL\backend\grid-sentinel-domain\src\test\java\com\gridsentinel\asset\AssetTest.java
+E:\PROJECTS\GRID_SENTINEL\backend\grid-sentinel-domain\src\test\java\com\gridsentinel\common\CommonKernelTest.java
+E:\PROJECTS\GRID_SENTINEL\backend\grid-sentinel-domain\src\test\java\com\gridsentinel\detection\ThreatEventTest.java
+E:\PROJECTS\GRID_SENTINEL\backend\grid-sentinel-domain\src\test\java\com\gridsentinel\grid\GridEdgeTest.java
+E:\PROJECTS\GRID_SENTINEL\backend\grid-sentinel-domain\src\test\java\com\gridsentinel\grid\GridNodeTest.java
+E:\PROJECTS\GRID_SENTINEL\backend\grid-sentinel-domain\src\test\java\com\gridsentinel\incident\IncidentTest.java
+E:\PROJECTS\GRID_SENTINEL\backend\grid-sentinel-domain\src\test\java\com\gridsentinel\observation\ObservationTest.java
+E:\PROJECTS\GRID_SENTINEL\backend\grid-sentinel-domain\src\test\java\com\gridsentinel\recovery\RecoveryStateTest.java
+E:\PROJECTS\GRID_SENTINEL\backend\grid-sentinel-domain\src\test\java\com\gridsentinel\response\ResponsePlanTest.java
+E:\PROJECTS\GRID_SENTINEL\backend\grid-sentinel-domain\src\test\java\com\gridsentinel\risk\RiskScoreTest.java
+E:\PROJECTS\GRID_SENTINEL\backend\grid-sentinel-domain\src\test\java\com\gridsentinel\simulation\SimulationTest.java
+E:\PROJECTS\GRID_SENTINEL\backend\grid-sentinel-domain\src\test\java\com\gridsentinel\test\TestGeometryFactory.java

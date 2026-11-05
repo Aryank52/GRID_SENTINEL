@@ -1,0 +1,81 @@
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {
+      colors: {
+        grid: {
+          50: '#f0f5fa',
+          100: '#e0ebf5',
+          200: '#c7d9eb',
+          300: '#a3bfda',
+          400: '#7a9cc4',
+          500: '#5a7db8',
+          600: '#456296',
+          700: '#384e76',
+          800: '#303f5f',
+          900: '#2a354d',
+          950: '#1a2235',
+        },
+        alert: {
+          50: '#fef3f3',
+          100: '#fee0e0',
+          200: '#fcc5c5',
+          300: '#fa9696',
+          400: '#f76565',
+          500: '#f33838',
+          600: '#e01c1c',
+          700: '#c01515',
+          800: '#9d1919',
+          900: '#801a1a',
+        },
+        warning: {
+          50: '#fffbf0',
+          100: '#fff3cc',
+          200: '#ffe799',
+          300: '#ffd566',
+          400: '#ffc133',
+          500: '#ffad00',
+          600: '#e08e00',
+          700: '#b36d00',
+          800: '#8c5400',
+          900: '#704300',
+        },
+        safe: {
+          50: '#f0fdf4',
+          100: '#dcfce7',
+          200: '#bbf7d0',
+          300: '#86efac',
+          400: '#4ade80',
+          500: '#22c55e',
+          600: '#16a34a',
+          700: '#15803d',
+          800: '#166534',
+          900: '#14532d',
+        },
+      },
+      fontFamily: {
+        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+      },
+      boxShadow: {
+        'elevation-1': '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+        'elevation-2': '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
+        'elevation-3': '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
+        'elevation-4': '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)',
+      },
+      transitionDuration: {
+        'fast': '150ms',
+        'normal': '200ms',
+        'slow': '300ms',
+      },
+      transitionTimingFunction: {
+        'ease-out-expo': 'cubic-bezier(0.4, 0, 0.2, 1)',
+      },
+    },
+  },
+  plugins: [],
+}
