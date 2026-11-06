@@ -18,6 +18,7 @@ import com.gridsentinel.asset.Asset;
 
 import java.time.Instant;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -349,5 +350,167 @@ public class RealTimeEventService {
         if (value >= 0.4) return "MEDIUM";
         if (value >= 0.2) return "HIGH";
         return "CRITICAL";
+    }
+
+    // =========================================================================
+    // Simplified Methods for Demo/Testing (String-based parameters)
+    // =========================================================================
+
+    /**
+     * Simplified publishThreatDetected for demo/testing with string parameters.
+     */
+    public void publishThreatDetected(String threatEventId,
+                                       String threatType,
+                                       String severity,
+                                       double confidence,
+                                       String description,
+                                       String affectedAssetId,
+                                       String nearbyGridNodeId,
+                                       String detectionStrategy,
+                                       String strategyVersion) {
+        CorrelationId correlationId = CorrelationId.generate();
+
+        com.gridsentinel.event.ThreatDetectedEvent event = new com.gridsentinel.event.ThreatDetectedEvent(
+                correlationId,
+                threatEventId,
+                threatType,
+                severity,
+                confidence,
+                Instant.now(),
+                affectedAssetId,
+                nearbyGridNodeId,
+                description,
+                Set.of(),
+                detectionStrategy,
+                strategyVersion,
+                "detection-pipeline"
+        );
+
+        realTimePublisher.publish(event, correlationId);
+    }
+
+    /**
+     * Simplified publishIncidentCreated for demo/testing with string parameters.
+     */
+    public void publishIncidentCreated(String incidentId,
+                                        String incidentNumber,
+                                        String state,
+                                        String severity,
+                                        String originatingThreatId,
+                                        String primaryAssetId,
+                                        String primaryGridNodeId,
+                                        String description,
+                                        String assignedOperatorId,
+                                        String incidentCommanderId) {
+        CorrelationId correlationId = CorrelationId.generate();
+
+        com.gridsentinel.event.IncidentCreatedEvent event = new com.gridsentinel.event.IncidentCreatedEvent(
+                correlationId,
+                incidentId,
+                incidentNumber,
+                state,
+                severity,
+                originatingThreatId,
+                primaryAssetId,
+                primaryGridNodeId,
+                description,
+                assignedOperatorId,
+                incidentCommanderId,
+                "incident-management"
+        );
+
+        realTimePublisher.publish(event, correlationId);
+    }
+
+    /**
+     * Simplified publishIncidentStateChanged for demo/testing with string parameters.
+     */
+    public void publishIncidentStateChanged(String incidentId,
+                                             String incidentNumber,
+                                             String previousState,
+                                             String newState,
+                                             String actorId,
+                                             String reason) {
+        CorrelationId correlationId = CorrelationId.generate();
+
+        com.gridsentinel.event.IncidentStateChangedEvent event = new com.gridsentinel.event.IncidentStateChangedEvent(
+                correlationId,
+                incidentId,
+                incidentNumber,
+                previousState,
+                newState,
+                actorId,
+                reason,
+                "incident-management"
+        );
+
+        realTimePublisher.publish(event, correlationId);
+    }
+
+    /**
+     * Simplified publishRiskScoreUpdated for demo/testing with string parameters.
+     */
+    public void publishRiskScoreUpdated(String assetId,
+                                         double previousScore,
+                                         double newScore,
+                                         String previousBand,
+                                         String newBand,
+                                         String modelName,
+                                         String modelVersion,
+                                         String strategyName) {
+        CorrelationId correlationId = CorrelationId.generate();
+
+        com.gridsentinel.event.RiskScoreUpdatedEvent event = new com.gridsentinel.event.RiskScoreUpdatedEvent(
+                correlationId,
+                "RISK-" + UUID.randomUUID().toString().substring(0, 8),
+                assetId,
+                previousScore,
+                newScore,
+                previousBand,
+                newBand,
+                modelName,
+                modelVersion,
+                strategyName,
+                "risk-engine"
+        );
+
+        realTimePublisher.publish(event, correlationId);
+    }
+
+    /**
+     * Simplified publishAssetStatusChanged for demo/testing with string parameters.
+     */
+    public void publishAssetStatusChanged(String assetId,
+                                           String assetName,
+                                           String assetType,
+                                           String previousHealthStatus,
+                                           String newHealthStatus,
+                                           String previousCriticality,
+                                           String newCriticality,
+                                           double previousHealthIndex,
+                                           double newHealthIndex,
+                                           String previousRiskBand,
+                                           String newRiskBand,
+                                           String changeReason) {
+        CorrelationId correlationId = CorrelationId.generate();
+
+        com.gridsentinel.event.GridAssetStatusChangedEvent event = new com.gridsentinel.event.GridAssetStatusChangedEvent(
+                correlationId,
+                assetId,
+                assetName,
+                assetType,
+                previousHealthStatus,
+                newHealthStatus,
+                previousCriticality,
+                newCriticality,
+                previousHealthIndex,
+                newHealthIndex,
+                previousRiskBand,
+                newRiskBand,
+                changeReason,
+                "asset-management"
+        );
+
+        realTimePublisher.publish(event, correlationId);
     }
 }

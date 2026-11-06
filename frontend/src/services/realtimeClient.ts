@@ -19,6 +19,15 @@ import type {
 import {
   STOMP_DESTINATIONS,
   STOMP_ENDPOINT,
+  isThreatDetectedEvent,
+  isThreatEscalatedEvent,
+  isIncidentCreatedEvent,
+  isIncidentStateChangedEvent,
+  isRiskScoreUpdatedEvent,
+  isSimulationCompletedEvent,
+  isResponsePlanUpdatedEvent,
+  isRecoveryProgressUpdatedEvent,
+  isGridAssetStatusChangedEvent,
 } from '../types/realtime';
 
 type EventHandler = (event: RealtimeEvent) => void;
@@ -345,19 +354,34 @@ export class RealtimeClient {
   }
 
   private validateEvent(event: any): event is RealtimeEvent {
+    if (
+      !event ||
+      typeof event !== 'object' ||
+      typeof event.eventId !== 'string' ||
+      typeof event.eventType !== 'string' ||
+      typeof event.occurredAt !== 'string' ||
+      !event.correlationId ||
+      typeof event.aggregateType !== 'string' ||
+      typeof event.aggregateId !== 'string' ||
+      typeof event.version !== 'number' ||
+      typeof event.severity !== 'string' ||
+      !event.payload ||
+      typeof event.source !== 'string'
+    ) {
+      return false;
+    }
+
+    // Use type guards for discriminated union narrowing
     return (
-      event &&
-      typeof event === 'object' &&
-      typeof event.eventId === 'string' &&
-      typeof event.eventType === 'string' &&
-      typeof event.occurredAt === 'string' &&
-      event.correlationId &&
-      typeof event.aggregateType === 'string' &&
-      typeof event.aggregateId === 'string' &&
-      typeof event.version === 'number' &&
-      typeof event.severity === 'string' &&
-      event.payload &&
-      typeof event.source === 'string'
+      isThreatDetectedEvent(event) ||
+      isThreatEscalatedEvent(event) ||
+      isIncidentCreatedEvent(event) ||
+      isIncidentStateChangedEvent(event) ||
+      isRiskScoreUpdatedEvent(event) ||
+      isSimulationCompletedEvent(event) ||
+      isResponsePlanUpdatedEvent(event) ||
+      isRecoveryProgressUpdatedEvent(event) ||
+      isGridAssetStatusChangedEvent(event)
     );
   }
 

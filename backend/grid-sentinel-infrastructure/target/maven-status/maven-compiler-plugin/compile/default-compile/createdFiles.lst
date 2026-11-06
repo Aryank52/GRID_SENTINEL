@@ -28,7 +28,6 @@ com\gridsentinel\infrastructure\api\spatial\RiskScoreProperties.class
 com\gridsentinel\infrastructure\persistence\repository\GridEdgeRepository.class
 com\gridsentinel\infrastructure\api\spatial\GeoJsonFeatureCollection.class
 com\gridsentinel\infrastructure\api\spatial\GeoJsonFeature.class
-com\gridsentinel\infrastructure\realtime\RealTimeEventService.class
 com\gridsentinel\infrastructure\config\DatabaseConfig.class
 com\gridsentinel\infrastructure\config\StompAuthenticationInterceptor$1.class
 com\gridsentinel\infrastructure\api\spatial\GeoJsonGeometry$MultiPolygon.class
