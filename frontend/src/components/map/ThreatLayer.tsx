@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import type { Map } from 'maplibre-gl';
 import type { ThreatEventProperties, GeoJsonFeatureCollection } from '@spatial/spatial';
 import maplibregl, { FilterSpecification } from 'maplibre-gl';
