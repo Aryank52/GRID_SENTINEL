@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import type { Map } from 'maplibre-gl';
 import type { IncidentProperties, GeoJsonFeatureCollection } from '@spatial/spatial';
 import maplibregl from 'maplibre-gl';
@@ -314,17 +314,9 @@ export function IncidentLayerWithPopup({
   layerId = 'incidents-layer',
   minZoom = 0,
   maxZoom = 22,
-  visible = true,
+  visible: _visible = true,
 }: IncidentLayerProps) {
-  const popupRef = useMemo(() => {
-    if (!map) return null;
-    return new maplibregl.Popup({
-      closeButton: false,
-      closeOnClick: false,
-      offset: 15,
-      className: 'incident-popup',
-    });
-  }, [map]);
+  const popupRef = useRef<maplibregl.Popup | null>(null);
 
   useEffect(() => {
     if (!map || !map.isStyleLoaded() || !data) return;
@@ -376,6 +368,16 @@ export function IncidentLayerWithPopup({
       if (!feature.properties) return;
 
       map.getCanvas().style.cursor = 'pointer';
+
+      // Create popup if it doesn't exist
+      if (!popupRef.current) {
+        popupRef.current = new maplibregl.Popup({
+          closeButton: false,
+          closeOnClick: false,
+          offset: 15,
+          className: 'incident-popup',
+        });
+      }
 
       const props = feature.properties as any;
       const stateColors: Record<string, string> = {

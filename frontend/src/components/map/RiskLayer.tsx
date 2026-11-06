@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import maplibregl from 'maplibre-gl';
 import type { Map } from 'maplibre-gl';
 import type { RiskScoreProperties, GeoJsonFeatureCollection } from '@spatial/spatial';
@@ -274,17 +274,9 @@ export function RiskLayerWithPopup({
   layerId = 'risk-layer',
   minZoom = 0,
   maxZoom = 22,
-  visible = true,
+  visible: _visible = true,
 }: any) {
-  const popupRef = useMemo(() => {
-    if (!map) return null;
-    return new maplibregl.Popup({
-      closeButton: false,
-      closeOnClick: false,
-      offset: 15,
-      className: 'risk-popup',
-    });
-  }, [map]);
+  const popupRef = useRef<maplibregl.Popup | null>(null);
 
   useEffect(() => {
     if (!map || !map.isStyleLoaded() || !data) return;
@@ -333,6 +325,16 @@ export function RiskLayerWithPopup({
       if (!feature.properties) return;
 
       map.getCanvas().style.cursor = 'pointer';
+
+      // Create popup if it doesn't exist
+      if (!popupRef.current) {
+        popupRef.current = new maplibregl.Popup({
+          closeButton: false,
+          closeOnClick: false,
+          offset: 15,
+          className: 'risk-popup',
+        });
+      }
 
       const props = feature.properties as any;
       const bandColors: Record<string, string> = {

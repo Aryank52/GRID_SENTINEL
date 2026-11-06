@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useRef } from 'react';
 import type { Map } from 'maplibre-gl';
 import type { GridNodeProperties, GeoJsonFeatureCollection, GeoJsonFeature } from '@spatial/spatial';
 
@@ -30,7 +30,7 @@ export function GridNodeLayer({
   minZoom = 0,
   maxZoom = 22,
   selectedFeatureId = null,
-  onFeatureClick,
+  onFeatureClick: _onFeatureClick,
   visible = true,
 }: GridNodeLayerProps) {
   // Initialize source and layer
@@ -182,17 +182,9 @@ export function GridNodeLayerWithPopup({
   layerId = DEFAULT_LAYER_ID,
   minZoom = 0,
   maxZoom = 22,
-  visible = true,
+  visible: _visible = true,
 }: GridNodeLayerProps) {
-  const popupRef = useMemo(() => {
-    if (!map) return null;
-    return new maplibregl.Popup({
-      closeButton: false,
-      closeOnClick: false,
-      offset: 15,
-      className: 'grid-node-popup',
-    });
-  }, [map]);
+  const popupRef = useRef<maplibregl.Popup | null>(null);
 
   useEffect(() => {
     if (!map || !map.isStyleLoaded() || !data) return;
@@ -246,6 +238,16 @@ export function GridNodeLayerWithPopup({
       if (!feature.properties) return;
 
       map.getCanvas().style.cursor = 'pointer';
+
+      // Create popup if it doesn't exist
+      if (!popupRef.current) {
+        popupRef.current = new maplibregl.Popup({
+          closeButton: false,
+          closeOnClick: false,
+          offset: 15,
+          className: 'grid-node-popup',
+        });
+      }
 
       const props = feature.properties as GridNodeProperties;
       const content = `

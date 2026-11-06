@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import type { Map } from 'maplibre-gl';
 import type { GridEdgeProperties, GeoJsonFeatureCollection } from '@spatial/spatial';
 import maplibregl, { FilterSpecification } from 'maplibre-gl';
@@ -94,12 +94,12 @@ export function GridEdgeLayer({
           'line-dasharray': [
             'match',
             ['get', 'type'],
-            'TRANSFORMER', [4, 4] as const,
-            'PHASE_SHIFTER', [6, 3] as const,
-            'SERIES_COMPENSATOR', [2, 2] as const,
-            'SHUNT_COMPENSATOR', [8, 4] as const,
-            [], // Solid line for others
-          ],
+            'TRANSFORMER', [4, 4],
+            'PHASE_SHIFTER', [6, 3],
+            'SERIES_COMPENSATOR', [2, 2],
+            'SHUNT_COMPENSATOR', [8, 4],
+            [],
+          ] as unknown as any[],
         },
       });
     }
@@ -232,7 +232,7 @@ export function GridEdgeLayerWithPopup({
   layerId = DEFAULT_LAYER_ID,
   minZoom = 0,
   maxZoom = 22,
-  _visible = true,
+  visible: _visible = true,
 }: GridEdgeLayerProps) {
   const popupRef = useRef<maplibregl.Popup | null>(null);
 
@@ -288,7 +288,7 @@ export function GridEdgeLayerWithPopup({
             'SERIES_COMPENSATOR', [2, 2],
             'SHUNT_COMPENSATOR', [8, 4],
             [],
-          ],
+          ] as unknown as any[],
         },
       });
     }
@@ -341,4 +341,9 @@ export function GridEdgeLayerWithPopup({
 
     return () => {
       map.off('mouseenter', layerId, handleMouseEnter);
-      map.off('mouseleave'
+      map.off('mouseleave', layerId, handleMouseLeave);
+    };
+  }, [map, sourceId, layerId, data, minZoom, maxZoom]);
+
+  return null;
+}
