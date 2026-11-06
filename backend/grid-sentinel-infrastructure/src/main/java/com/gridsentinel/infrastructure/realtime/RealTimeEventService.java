@@ -52,7 +52,7 @@ public class RealTimeEventService {
 
         Set<String> evidenceIds = threat.getSupportingEvidence() != null 
                 ? threat.getSupportingEvidence().stream()
-                    .map(e -> e.getId().toString())
+                    .map(e -> e.getSourceObservationId() != null ? e.getSourceObservationId().toString() : e.getType().name())
                     .collect(Collectors.toSet())
                 : Set.of();
 
