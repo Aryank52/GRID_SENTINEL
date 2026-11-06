@@ -1,4 +1,4 @@
-# Phase 2E - Current State Audit
+# Phase 2E - Current State Audit (Updated)
 
 ## Overview
 This document records the actual verified state of the Phase 2E Real-time Grid Events implementation as of the audit date.
@@ -6,9 +6,9 @@ This document records the actual verified state of the Phase 2E Real-time Grid E
 ## Backend Status
 
 ### ✅ IMPLEMENTED & COMPILED
-- **GridEventEnvelope** - Immutable record envelope with eventId, eventType, occurredAt, correlationId, aggregateType, aggregateId, version, severity, payload, source
+- **GridEventEnvelope** - Generic immutable record envelope with eventId, eventType, occurredAt, correlationId, aggregateType, aggregateId, version, severity, payload, source
 - **EventSeverity** - Enum: INFO, LOW, MEDIUM, HIGH, CRITICAL, EMERGENCY
-- **GridEvent (sealed abstract class)** - 9 concrete event types permitted:
+- **GridEvent (sealed abstract class)** - Generic `<P>` payload, 9 concrete event types permitted:
   - ThreatDetectedEvent
   - ThreatEscalatedEvent
   - IncidentCreatedEvent
@@ -30,11 +30,11 @@ All backend modules compile successfully (mvn clean compile passes)
 
 ### ✅ TESTED
 - 186 domain tests pass
+- 11 JSON serialization tests pass
 - 27 architecture tests pass
-- Total: 213 tests pass
+- Total: 224 tests pass
 
 ### ❌ NOT VERIFIED
-- JSON serialization tests for events
 - Event publication wiring from domain/application layer
 - WebSocket integration tests
 - Two-client event delivery
@@ -61,6 +61,7 @@ All backend modules compile successfully (mvn clean compile passes)
   - Event history (last 100 events)
 - **CommandCenter integration** - Real-time connection status, event feed, active counts
 - **LiveGridMap integration** - Connection status badge, auto-refetch on events, latest event toast
+- **Popup refs fixed** - All 6 map layer components use `useRef<maplibregl.Popup | null>(null)`
 
 ### ✅ TYPECHECK PASSES
 TypeScript compilation with no errors
@@ -91,31 +92,27 @@ Primary issues:
 - Domain/common modules don't depend on infrastructure
 - Application layer depends on ports, not implementations
 - Controllers don't contain WebSocket logic
+- Common module events use only common types (CorrelationId, EventSeverity) and strings for domain-specific values
 
 ### ⚠️ ISSUES FOUND
 
-#### 1. Common Module Dependency Boundary (CRITICAL)
-The `grid-sentinel-common` module imports domain-specific types:
-- `grid-sentinel-common` events import `CommonKernel.CorrelationId`, `CommonKernel.EventSeverity` - OK (these are in common)
-- But event payloads use domain-specific enums as strings (threatType, incidentState, riskBand) - OK (using strings)
-- However, `RealTimeEventService` in infrastructure imports domain entities directly (ThreatEvent, Incident, RiskScore, etc.) - this is correct for infrastructure
-
-#### 2. Payload Serialization Uses `Object`
-- `GridEventEnvelope.payload` is typed as `Object` - should be more specific
-- `GridEvent.payload()` returns `Object` - should use typed payload records
-
-#### 3. Frontend Popup Refs
-- Map layer components (AssetLayer, ThreatLayer, IncidentLayer, RiskLayer, GridNodeLayer, GridEdgeLayer) use `{ current: null }` pattern instead of `useRef<maplibregl.Popup | null>(null)`
-
-#### 4. Event Validation
-- Frontend validates basic structure but doesn't use type guards for discriminated union narrowing
-- Uses `event.payload as any` in message formatting
-
-#### 5. Missing Integration Points
-- No evidence of domain/application events being published from actual state changes
+#### 1. Event Publication Wiring (CRITICAL)
 - `RealTimeEventService` methods exist but not called from controllers/use cases
+- No evidence of domain/application events being published from actual state changes
 - No demo/test event trigger mechanism
 - No two-client verification
+
+#### 2. Frontend Event Validation Enhancement
+- Frontend validates basic structure but doesn't use type guards for discriminated union narrowing
+- Uses `event.payload as any` in message formatting
+- Should use `isThreatDetectedEvent`, `isIncidentCreatedEvent`, etc. type guards
+
+#### 3. Missing Integration Points
+- No WebSocket integration tests
+- No reconnect resync verification
+- No REST fallback verification
+- No two-client test
+- No development demo event trigger
 
 ---
 
@@ -124,8 +121,9 @@ The `grid-sentinel-common` module imports domain-specific types:
 | Category | Status |
 |----------|--------|
 | Event Domain Model | ✅ IMPLEMENTED, COMPILED, TESTED |
-| Event Envelope | ✅ IMPLEMENTED, COMPILED |
-| Event Types (9) | ✅ IMPLEMENTED, COMPILED |
+| Event Envelope (generic) | ✅ IMPLEMENTED, COMPILED, TESTED |
+| Event Types (9) | ✅ IMPLEMENTED, COMPILED, TESTED |
+| JSON Serialization Tests | ✅ IMPLEMENTED, COMPILED, TESTED (11 tests) |
 | Application Port | ✅ IMPLEMENTED, COMPILED |
 | WebSocket/STOMP Config | ✅ IMPLEMENTED, COMPILED |
 | STOMP Authentication | ✅ IMPLEMENTED, COMPILED |
@@ -136,10 +134,10 @@ The `grid-sentinel-common` module imports domain-specific types:
 | useRealtimeEvents Hook | ✅ IMPLEMENTED, COMPILED, TYPECHECK |
 | CommandCenter Integration | ✅ IMPLEMENTED, COMPILED, TYPECHECK |
 | LiveGridMap Integration | ✅ IMPLEMENTED, COMPILED, TYPECHECK |
-| JSON Serialization Tests | ❌ NOT IMPLEMENTED |
+| Popup Ref Fix | ✅ IMPLEMENTED, COMPILED, TYPECHECK, BUILD |
 | Event Publication Wiring | ❌ NOT WIRED |
 | WebSocket Integration Tests | ❌ NOT IMPLEMENTED |
-| React Ref Correction | ❌ NOT FIXED |
+| React Ref Correction | ✅ FIXED (6 components) |
 | Event Validation Enhancement | ❌ NOT ENHANCED |
 | Reconnect Resync | ❌ NOT VERIFIED |
 | REST Fallback | ❌ NOT VERIFIED |

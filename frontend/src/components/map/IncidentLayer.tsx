@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import type { Map } from 'maplibre-gl';
 import type { IncidentProperties, GeoJsonFeatureCollection } from '@spatial/spatial';
 import maplibregl from 'maplibre-gl';
@@ -316,7 +316,7 @@ export function IncidentLayerWithPopup({
   maxZoom = 22,
   visible: _visible = true,
 }: IncidentLayerProps) {
-  const popupRef = { current: null as maplibregl.Popup | null };
+  const popupRef = useRef<maplibregl.Popup | null>(null);
 
   useEffect(() => {
     if (!map || !map.isStyleLoaded() || !data) return;

@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import maplibregl from 'maplibre-gl';
 import type { Map } from 'maplibre-gl';
 import type { RiskScoreProperties, GeoJsonFeatureCollection } from '@spatial/spatial';
@@ -276,7 +276,7 @@ export function RiskLayerWithPopup({
   maxZoom = 22,
   visible: _visible = true,
 }: any) {
-  const popupRef = { current: null as maplibregl.Popup | null };
+  const popupRef = useRef<maplibregl.Popup | null>(null);
 
   useEffect(() => {
     if (!map || !map.isStyleLoaded() || !data) return;

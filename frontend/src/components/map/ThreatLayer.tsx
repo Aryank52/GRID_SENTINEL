@@ -292,7 +292,7 @@ export function ThreatLayerWithPopup({
   maxZoom = 22,
   visible: _visible = true,
 }: ThreatLayerProps) {
-  const popupRef = { current: null as maplibregl.Popup | null };
+  const popupRef = useRef<maplibregl.Popup | null>(null);
 
   useEffect(() => {
     if (!map || !map.isStyleLoaded() || !data) return;
