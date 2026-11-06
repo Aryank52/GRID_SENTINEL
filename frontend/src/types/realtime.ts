@@ -5,11 +5,14 @@
  * Events are delivered via WebSocket/STOMP and used for UI updates.
  */
 
-import type { CorrelationId } from '@spatial/spatial';
-
 // ============================================================================
 // Common Types
 // ============================================================================
+
+/**
+ * Correlation ID for event tracing (matches backend CommonKernel.CorrelationId)
+ */
+export type CorrelationId = string;
 
 /**
  * Severity levels for grid events, matching backend EventSeverity enum

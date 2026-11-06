@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
-import { Map, Layers, Maximize, Minimize, MapPin, AlertTriangle, Zap, Activity, RefreshCw, Home, Wifi, WifiOff, Bell } from 'lucide-react';
+import { Map, Layers, Maximize, Minimize, MapPin, AlertTriangle, Zap, Activity, RefreshCw, Home, WifiOff, Bell } from 'lucide-react';
 import { PageTemplate } from '../components/ui/PageTemplate';
 import { Button } from '../components/ui/Button';
 import { MapLibreMap, useMapLibre } from '../components/map/MapLibreMap';

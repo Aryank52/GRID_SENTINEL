@@ -8,16 +8,50 @@
  * - Centralized event routing
  */
 
-import { useEffect, useCallback, useRef, useState } from 'react';
+import { useEffect, useCallback, useRef, useState, useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { getRealtimeClient, resetRealtimeClient } from '@services/realtimeClient';
 import type {
   RealtimeEvent,
   ConnectionStatus,
-  ConnectionState,
   EventHistoryEntry,
-} from '@types/realtime';
-import { useAuth } from './useAuth';
+} from '../types/realtime';
+
+// =========================================================================
+// Event Message Formatting
+// =========================================================================
+
+/**
+ * Create a human-readable message from an event
+ */
+function createEventMessage(event: RealtimeEvent): string {
+  const payload = event.payload as any;
+  
+  switch (event.eventType) {
+    case 'ThreatDetected':
+      return `Threat detected: ${payload.threatType} (${payload.severity}) - ${payload.description}`;
+    case 'ThreatEscalated':
+      return `Threat escalated: ${payload.previousSeverity} → ${payload.newSeverity} - ${payload.escalationReason}`;
+    case 'IncidentCreated':
+      return `Incident created: ${payload.incidentNumber} (${payload.state}) - ${payload.description}`;
+    case 'IncidentStateChanged':
+      return `Incident ${payload.incidentNumber}: ${payload.previousState} → ${payload.newState}`;
+    case 'RiskScoreUpdated':
+      return `Risk score updated for asset ${payload.assetId}: ${payload.previousScore?.toFixed(2) || 'N/A'} → ${payload.newScore?.toFixed(2)} (${payload.newBand})`;
+    case 'SimulationCompleted':
+      return `Simulation completed: ${payload.name} (${payload.status})`;
+    case 'ResponsePlanUpdated':
+      return `Response plan ${payload.action}: ${payload.name} (${payload.newStatus})`;
+    case 'RecoveryProgressUpdated':
+      return `Recovery progress: ${payload.previousPhase} → ${payload.newPhase} (${(payload.newProgress * 100).toFixed(0)}%)`;
+    case 'GridAssetStatusChanged':
+      return `Asset status changed: ${payload.assetName} (${payload.assetType}) - ${payload.previousHealthStatus} → ${payload.newHealthStatus}`;
+  }
+  
+  // Exhaustiveness check - TypeScript ensures all cases are handled
+  const _exhaustive: never = event;
+  return _exhaustive;
+}
 
 // Deduplication cache configuration
 const DEDUPLICATION_CACHE_SIZE = 1000;
@@ -35,8 +69,9 @@ interface ProcessedEventCacheEntry {
  */
 export function useRealtimeEvents() {
   const queryClient = useQueryClient();
-  const { accessToken } = useAuth();
-const isAuthenticated = !!accessToken;
+  // Get token from localStorage directly since auth context doesn't expose it
+  const accessToken = useMemo(() => localStorage.getItem('access_token'), []);
+  const isAuthenticated = !!accessToken;
   
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>({
     state: 'DISCONNECTED',
@@ -50,7 +85,6 @@ const isAuthenticated = !!accessToken;
   const [latestEvent, setLatestEvent] = useState<RealtimeEvent | null>(null);
   
   const processedEventsRef = useRef<ProcessedEventCacheEntry[]>([]);
-  const isInitializedRef = useRef(false);
   const eventHistoryRef = useRef<EventHistoryEntry[]>([]);
 
   // =========================================================================
@@ -353,37 +387,4 @@ const isAuthenticated = !!accessToken;
     _processEvent: processEvent,
     _isEventProcessed: isEventProcessed,
   };
-}
-
-// Need to import useMemo
-import { useMemo } from 'react';
-
-/**
- * Create a human-readable message from an event
- */
-function createEventMessage(event: RealtimeEvent): string {
-  const payload = event.payload as any;
-  
-  switch (event.eventType) {
-    case 'ThreatDetected':
-      return `Threat detected: ${payload.threatType} (${payload.severity}) - ${payload.description}`;
-    case 'ThreatEscalated':
-      return `Threat escalated: ${payload.previousSeverity} → ${payload.newSeverity} - ${payload.escalationReason}`;
-    case 'IncidentCreated':
-      return `Incident created: ${payload.incidentNumber} (${payload.state}) - ${payload.description}`;
-    case 'IncidentStateChanged':
-      return `Incident ${payload.incidentNumber}: ${payload.previousState} → ${payload.newState}`;
-    case 'RiskScoreUpdated':
-      return `Risk score updated for asset ${payload.assetId}: ${payload.previousScore?.toFixed(2) || 'N/A'} → ${payload.newScore?.toFixed(2)} (${payload.newBand})`;
-    case 'SimulationCompleted':
-      return `Simulation completed: ${payload.name} (${payload.status})`;
-    case 'ResponsePlanUpdated':
-      return `Response plan ${payload.action}: ${payload.name} (${payload.newStatus})`;
-    case 'RecoveryProgressUpdated':
-      return `Recovery progress: ${payload.previousPhase} → ${payload.newPhase} (${(payload.newProgress * 100).toFixed(0)}%)`;
-    case 'GridAssetStatusChanged':
-      return `Asset status changed: ${payload.assetName} (${payload.assetType}) - ${payload.previousHealthStatus} → ${payload.newHealthStatus}`;
-    default:
-      return `${event.eventType} event for ${event.aggregateType} ${event.aggregateId}`;
-  }
 }

@@ -1,25 +1,21 @@
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { 
   AlertTriangle, 
   MapPin, 
-  Clock, 
   TrendingUp, 
   Users, 
   Activity, 
   Map, 
   FileText, 
   RotateCcw, 
-  Link, 
-  MapPin as MapPinIcon, 
-  LucideIcon,
-  Wifi,
-  WifiOff,
   Zap,
   Database,
   Shield,
   RefreshCw,
   Bell,
   BellOff,
+  Wifi,
+  WifiOff,
 } from 'lucide-react';
 import { StatCard } from '../components/ui/StatCard';
 import { useRealtimeEvents } from '../hooks/useRealtimeEvents';
@@ -33,7 +29,6 @@ export function CommandCenter() {
     isOffline,
     connectionDisplayText,
     eventHistory,
-    latestEvent,
     activeThreatsCount,
     activeIncidentsCount,
     disconnect,
@@ -55,14 +50,14 @@ export function CommandCenter() {
        ['DETECTED', 'TRIAGED', 'CONFIRMED', 'ACTIVE_RESPONSE', 'CONTAINED', 'RECOVERING'].includes((e as any).payload?.newState))
     ).length;
 
-    return [
+    const statItems = [
       { 
         label: 'Connection', 
         value: connectionDisplayText, 
         trend: isConnected ? 'Real-time active' : isReconnecting ? 'Reconnecting...' : 'Offline', 
         trendUp: isConnected ? true : null, 
         icon: isConnected ? Wifi : WifiOff, 
-        color: isConnected ? 'safe' : isOffline ? 'alert' : 'warning' 
+        color: (isConnected ? 'safe' : isOffline ? 'alert' : 'warning') as 'safe' | 'warning' | 'alert' | 'grid'
       },
       { 
         label: 'Active Threats', 
@@ -70,7 +65,7 @@ export function CommandCenter() {
         trend: recentThreats > 0 ? 'Requires attention' : 'No active threats', 
         trendUp: recentThreats === 0, 
         icon: AlertTriangle, 
-        color: recentThreats > 2 ? 'alert' : recentThreats > 0 ? 'warning' : 'safe' 
+        color: (recentThreats > 2 ? 'alert' : recentThreats > 0 ? 'warning' : 'safe') as 'safe' | 'warning' | 'alert' | 'grid'
       },
       { 
         label: 'Open Incidents', 
@@ -78,7 +73,7 @@ export function CommandCenter() {
         trend: recentIncidents > 0 ? 'Monitoring' : 'No open incidents', 
         trendUp: recentIncidents === 0, 
         icon: FileText, 
-        color: recentIncidents > 1 ? 'alert' : recentIncidents > 0 ? 'warning' : 'safe' 
+        color: (recentIncidents > 1 ? 'alert' : recentIncidents > 0 ? 'warning' : 'safe') as 'safe' | 'warning' | 'alert' | 'grid'
       },
       { 
         label: 'Risk Updates (1h)', 
@@ -89,7 +84,7 @@ export function CommandCenter() {
         trend: 'Risk engine active', 
         trendUp: null, 
         icon: TrendingUp, 
-        color: 'grid' 
+        color: 'grid' as const
       },
       { 
         label: 'Asset Changes (1h)', 
@@ -100,7 +95,7 @@ export function CommandCenter() {
         trend: 'Asset monitoring active', 
         trendUp: null, 
         icon: Database, 
-        color: 'grid' 
+        color: 'grid' as const
       },
       { 
         label: 'Simulations (24h)', 
@@ -111,9 +106,11 @@ export function CommandCenter() {
         trend: 'Simulation engine ready', 
         trendUp: null, 
         icon: Zap, 
-        color: 'grid' 
+        color: 'grid' as const
       },
     ];
+    
+    return statItems;
   }, [connectionStatus, eventHistory, isConnected, isReconnecting, isOffline, connectionDisplayText]);
 
   // Get recent events for the activity feed
@@ -132,35 +129,6 @@ export function CommandCenter() {
     if (minutes < 60) return `${minutes}m ago`;
     if (hours < 24) return `${hours}h ago`;
     return new Date(timestamp).toLocaleDateString();
-  };
-
-  // Get event icon
-  const getEventIcon = (eventType: string): LucideIcon => {
-    switch (eventType) {
-      case 'ThreatDetected': return AlertTriangle;
-      case 'ThreatEscalated': return Zap;
-      case 'IncidentCreated': return FileText;
-      case 'IncidentStateChanged': return Shield;
-      case 'RiskScoreUpdated': return TrendingUp;
-      case 'SimulationCompleted': return Activity;
-      case 'ResponsePlanUpdated': return MapPin;
-      case 'RecoveryProgressUpdated': return RotateCcw;
-      case 'GridAssetStatusChanged': return Database;
-      default: return Bell;
-    }
-  };
-
-  // Get event color
-  const getEventColor = (severity: string): string => {
-    switch (severity) {
-      case 'CRITICAL':
-      case 'EMERGENCY': return 'text-alert-600 bg-alert-100';
-      case 'HIGH': return 'text-warning-600 bg-warning-100';
-      case 'MEDIUM': return 'text-grid-600 bg-grid-100';
-      case 'LOW': return 'text-grid-500 bg-grid-100';
-      case 'INFO': return 'text-blue-600 bg-blue-100';
-      default: return 'text-grid-500 bg-grid-100';
-    }
   };
 
   return (
@@ -269,7 +237,7 @@ export function CommandCenter() {
               </div>
             </div>
             <div className="panel-content p-0 max-h-96 overflow-y-auto">
-              <EventFeed events={recentEvents} formatRelativeTime={formatRelativeTime} getEventIcon={getEventIcon} getEventColor={getEventColor} />
+              <EventFeed events={recentEvents} formatRelativeTime={formatRelativeTime} />
             </div>
           </section>
         </div>
@@ -288,7 +256,7 @@ export function CommandCenter() {
               </span>
             </div>
             <div className="panel-content p-0">
-              <ThreatList events={eventHistory} />
+              <ThreatList events={eventHistory} formatRelativeTime={formatRelativeTime} />
             </div>
           </section>
 
@@ -304,7 +272,7 @@ export function CommandCenter() {
               </span>
             </div>
             <div className="panel-content p-0">
-              <IncidentList events={eventHistory} />
+              <IncidentList events={eventHistory} formatRelativeTime={formatRelativeTime} />
             </div>
           </section>
 
@@ -380,14 +348,23 @@ function LiveGridMapPlaceholder({ isConnected }: { isConnected: boolean }) {
 function EventFeed({ 
   events, 
   formatRelativeTime,
-  getEventIcon,
-  getEventColor,
 }: { 
   events: any[];
   formatRelativeTime: (ts: string) => string;
-  getEventIcon: (type: string) => any;
-  getEventColor: (severity: string) => string;
 }) {
+  // Map event types to their icons
+  const eventIcons: Record<string, React.ComponentType<{ className?: string }>> = {
+    ThreatDetected: AlertTriangle,
+    ThreatEscalated: Zap,
+    IncidentCreated: FileText,
+    IncidentStateChanged: Shield,
+    RiskScoreUpdated: TrendingUp,
+    SimulationCompleted: Activity,
+    ResponsePlanUpdated: MapPin,
+    RecoveryProgressUpdated: RotateCcw,
+    GridAssetStatusChanged: Database,
+  };
+
   if (events.length === 0) {
     return (
       <div className="p-8 text-center text-grid-400">
@@ -400,33 +377,36 @@ function EventFeed({
 
   return (
     <div className="divide-y divide-grid-200">
-      {events.map((event, index) => (
-        <div 
-          key={event.eventId} 
-          className="p-4 hover:bg-grid-50 transition-colors border-l-2 border-transparent"
-          style={{ borderLeftColor: getEventSeverityColor(event.severity) }}
-        >
-          <div className="flex items-start gap-3">
-            <div className={clsx('p-1.5 rounded-lg flex-shrink-0', getEventColor(event.severity))}>
-              <getEventIcon(event.eventType) className="w-5 h-5" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="font-medium text-grid-900">{event.eventType}</span>
-                <span className={clsx('badge badge-xs', getEventSeverityBadge(event.severity))}>
-                  {event.severity}
-                </span>
+      {events.map((event) => {
+        const EventIcon = eventIcons[event.eventType] || Bell;
+        return (
+          <div 
+            key={event.eventId} 
+            className="p-4 hover:bg-grid-50 transition-colors border-l-2 border-transparent"
+            style={{ borderLeftColor: getEventSeverityColor(event.severity) }}
+          >
+            <div className="flex items-start gap-3">
+              <div className={clsx('p-1.5 rounded-lg flex-shrink-0', getEventColor(event.severity))}>
+                <EventIcon className="w-5 h-5" />
               </div>
-              <p className="text-sm text-grid-700 mt-1">{event.message}</p>
-              <div className="flex items-center gap-3 mt-2 text-xs text-grid-400">
-                <span className="font-mono">{event.aggregateType} {event.aggregateId.slice(0, 8)}...</span>
-                <span>{formatRelativeTime(event.timestamp)}</span>
-                <span className="font-mono text-grid-500">{event.correlationId?.slice(0, 8)}...</span>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="font-medium text-grid-900">{event.eventType}</span>
+                  <span className={clsx('badge badge-xs', getEventSeverityBadge(event.severity))}>
+                    {event.severity}
+                  </span>
+                </div>
+                <p className="text-sm text-grid-700 mt-1">{event.message}</p>
+                <div className="flex items-center gap-3 mt-2 text-xs text-grid-400">
+                  <span className="font-mono">{event.aggregateType} {event.aggregateId.slice(0, 8)}...</span>
+                  <span>{formatRelativeTime(event.timestamp)}</span>
+                  <span className="font-mono text-grid-500">{event.correlationId?.slice(0, 8)}...</span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
@@ -453,7 +433,19 @@ function getEventSeverityBadge(severity: string): string {
   }
 }
 
-function ThreatList({ events }: { events: any[] }) {
+function getEventColor(severity: string): string {
+  switch (severity) {
+    case 'CRITICAL':
+    case 'EMERGENCY': return 'text-alert-600 bg-alert-100';
+    case 'HIGH': return 'text-warning-600 bg-warning-100';
+    case 'MEDIUM': return 'text-grid-600 bg-grid-100';
+    case 'LOW': return 'text-grid-500 bg-grid-100';
+    case 'INFO': return 'text-blue-600 bg-blue-100';
+    default: return 'text-grid-500 bg-grid-100';
+  }
+}
+
+function ThreatList({ events, formatRelativeTime }: { events: any[]; formatRelativeTime: (ts: string) => string }) {
   const threats = events
     .filter(e => e.eventType === 'ThreatDetected')
     .slice(0, 10);
@@ -496,18 +488,7 @@ function ThreatList({ events }: { events: any[] }) {
   );
 }
 
-function formatRelativeTime(timestamp: string): string {
-  const diff = Date.now() - new Date(timestamp).getTime();
-  const minutes = Math.floor(diff / 60000);
-  const hours = Math.floor(diff / 3600000);
-  
-  if (minutes < 1) return 'Just now';
-  if (minutes < 60) return `${minutes}m ago`;
-  if (hours < 24) return `${hours}h ago`;
-  return new Date(timestamp).toLocaleDateString();
-}
-
-function IncidentList({ events }: { events: any[] }) {
+function IncidentList({ events, formatRelativeTime }: { events: any[]; formatRelativeTime: (ts: string) => string }) {
   const incidents = events
     .filter(e => e.eventType === 'IncidentCreated' || e.eventType === 'IncidentStateChanged')
     .slice(0, 10);
@@ -561,7 +542,7 @@ function ActionQueue({ events }: { events: any[] }) {
       e.eventType === 'ResponsePlanUpdated'
     )
     .slice(0, 5)
-    .map((event, index) => {
+    .map((event) => {
       const payload = event.payload as any;
       const priority = event.severity === 'CRITICAL' || event.severity === 'EMERGENCY' ? 'IMMEDIATE' :
                        event.severity === 'HIGH' ? 'URGENT' : 'HIGH';

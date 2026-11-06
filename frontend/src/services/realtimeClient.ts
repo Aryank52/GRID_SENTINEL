@@ -15,9 +15,11 @@ import type {
   RealtimeEvent,
   ConnectionState,
   ConnectionStatus,
+} from '../types/realtime';
+import {
   STOMP_DESTINATIONS,
   STOMP_ENDPOINT,
-} from '@types/realtime';
+} from '../types/realtime';
 
 type EventHandler = (event: RealtimeEvent) => void;
 type ConnectionStateHandler = (status: ConnectionStatus) => void;
@@ -319,7 +321,7 @@ export class RealtimeClient {
     }
   }
 
-  private handleMessage(message: IMessage, destination: string): void {
+  private handleMessage(message: IMessage, _destination: string): void {
     try {
       const event = JSON.parse(message.body) as RealtimeEvent;
       
