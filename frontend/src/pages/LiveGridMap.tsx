@@ -1,5 +1,5 @@
-import { useState, useCallback, useMemo } from 'react';
-import { Map, Layers, Maximize, Minimize, MapPin, AlertTriangle, Zap, Activity, RefreshCw, Home } from 'lucide-react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
+import { Map, Layers, Maximize, Minimize, MapPin, AlertTriangle, Zap, Activity, RefreshCw, Home, Wifi, WifiOff, Bell } from 'lucide-react';
 import { PageTemplate } from '../components/ui/PageTemplate';
 import { Button } from '../components/ui/Button';
 import { MapLibreMap, useMapLibre } from '../components/map/MapLibreMap';
@@ -7,6 +7,7 @@ import { MapFilters } from '../components/map/MapFilters';
 import { DetailDrawer } from '../components/map/DetailDrawer';
 import { Legend } from '../components/map/Legend';
 import { useViewportSpatialData } from '../hooks/useSpatialData';
+import { useRealtimeEvents } from '../hooks/useRealtimeEvents';
 import type { FeatureType, SpatialQueryParams, GeoJsonFeature, SelectedFeature } from '@spatial/spatial';
 
 type LayerType = 'nodes' | 'edges' | 'assets' | 'threats' | 'incidents' | 'risk';
@@ -37,6 +38,9 @@ export function LiveGridMap() {
   const [legendCollapsed, setLegendCollapsed] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [riskHeatmapMode, setRiskHeatmapMode] = useState(false);
+
+  // Real-time events integration
+  const { isConnected, isReconnecting, isOffline, connectionDisplayText, latestEvent, reconnect } = useRealtimeEvents();
 
   // Get map methods
   const mapMethods = useMapLibre();
@@ -106,6 +110,29 @@ export function LiveGridMap() {
     includeRisk: layerVisibility.risk,
   });
 
+  // Trigger refetch when relevant real-time events arrive
+  useEffect(() => {
+    if (!latestEvent) return;
+    
+    const eventType = latestEvent.eventType;
+    // Refetch spatial data for relevant event types
+    if (
+      eventType === 'ThreatDetected' ||
+      eventType === 'ThreatEscalated' ||
+      eventType === 'IncidentCreated' ||
+      eventType === 'IncidentStateChanged' ||
+      eventType === 'RiskScoreUpdated' ||
+      eventType === 'GridAssetStatusChanged' ||
+      eventType === 'SimulationCompleted'
+    ) {
+      // Debounce refetch to avoid excessive requests
+      const timer = setTimeout(() => {
+        refetch();
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [latestEvent, refetch]);
+
   // Handle feature selection
   const handleFeatureClick = useCallback((selectedFeature: SelectedFeature) => {
     setSelectedFeature({ feature: selectedFeature.feature, type: selectedFeature.feature.properties?.type as FeatureType || 'unknown' });
@@ -123,7 +150,6 @@ export function LiveGridMap() {
 
   // Handle map load - fit to data bounds if available
   const handleMapLoad = useCallback((_map: any) => {
-    // Could fit to data bounds here if needed
     console.log('Map loaded');
   }, []);
 
@@ -174,6 +200,20 @@ export function LiveGridMap() {
       icon={Map}
       actions={
         <div className="flex items-center gap-2">
+          {/* Connection Status Indicator */}
+          <div className="flex items-center gap-2 px-2 py-1 rounded-lg bg-white/90 backdrop-blur border border-grid-200">
+            <span className={`
+              w-2 h-2 rounded-full
+              ${isConnected ? 'bg-safe-500 animate-pulse' : isReconnecting ? 'bg-warning-500 animate-bounce' : 'bg-alert-500'}
+            `} />
+            <span className={`
+              text-xs font-medium
+              ${isConnected ? 'text-safe-700' : isReconnecting ? 'text-warning-700' : 'text-alert-700'}
+            `}>
+              {connectionDisplayText}
+            </span>
+          </div>
+
           <Button
             variant="ghost"
             size="sm"
@@ -202,6 +242,17 @@ export function LiveGridMap() {
           >
             {isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
           </Button>
+          {isOffline && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={reconnect}
+              aria-label="Reconnect to real-time stream"
+            >
+              <WifiOff className="w-4 h-4 mr-1" />
+              Reconnect
+            </Button>
+          )}
         </div>
       }
     >
@@ -245,8 +296,23 @@ export function LiveGridMap() {
           </div>
         )}
 
-        {/* Layer Controls - Top Right */}
+        {/* Connection Status - Top Right */}
         <div className="absolute top-4 right-4 z-20 flex flex-col gap-2">
+          <div className={`
+            card bg-white/90 backdrop-blur shadow-lg border border-grid-200 px-3 py-2 flex items-center gap-2
+            ${isConnected ? 'border-safe-300' : isReconnecting ? 'border-warning-300' : 'border-alert-300'}
+          `}>
+            <span className={`
+              w-2 h-2 rounded-full
+              ${isConnected ? 'bg-safe-500 animate-pulse' : isReconnecting ? 'bg-warning-500 animate-bounce' : 'bg-alert-500'}
+            `} />
+            <span className="text-sm font-medium text-grid-900">
+              {connectionDisplayText}
+              {isReconnecting && <span className="ml-1 text-xs text-warning-600">({isReconnecting ? '...' : ''})</span>}
+            </span>
+          </div>
+
+          {/* Layer Controls */}
           <div className="card bg-white/90 backdrop-blur shadow-lg border border-grid-200 p-2">
             <div className="flex items-center gap-2 mb-2">
               <Layers className="w-5 h-5 text-grid-600" />
@@ -327,6 +393,27 @@ export function LiveGridMap() {
                   <Zap className="w-3 h-3" />
                   Zoom {viewport.zoom.toFixed(1)}
                 </span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Latest Event Toast - Bottom Right */}
+        {latestEvent && isConnected && (
+          <div className="absolute bottom-4 right-4 z-20 animate-slide-up">
+            <div className="card bg-white/95 backdrop-blur shadow-xl border border-grid-200 px-4 py-3 max-w-sm">
+              <div className="flex items-start gap-3">
+                <div className="p-1.5 rounded-lg bg-primary-100 text-primary-700 flex-shrink-0">
+                  <Bell className="w-5 h-5" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-grid-900 text-sm">{latestEvent.eventType}</span>
+                    <span className="badge badge-xs badge-primary">LIVE</span>
+                  </div>
+                  <p className="text-sm text-grid-600 mt-1 line-clamp-2">Event received for {latestEvent.aggregateType} {latestEvent.aggregateId.slice(0, 8)}...</p>
+                  <p className="text-xs text-grid-400 mt-1">Just now</p>
+                </div>
               </div>
             </div>
           </div>
