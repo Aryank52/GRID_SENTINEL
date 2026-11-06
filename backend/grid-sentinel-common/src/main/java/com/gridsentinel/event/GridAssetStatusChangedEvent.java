@@ -8,7 +8,7 @@ import java.util.Objects;
 /**
  * Event fired when a grid asset's status changes (health, criticality, status, etc.).
  */
-public final class GridAssetStatusChangedEvent extends GridEvent {
+public final class GridAssetStatusChangedEvent extends GridEvent<GridAssetStatusChangedEvent.Payload> {
 
     private final String assetId;
     private final String assetName;
@@ -78,7 +78,7 @@ public final class GridAssetStatusChangedEvent extends GridEvent {
     }
 
     @Override
-    protected Object payload() {
+    public Payload payload() {
         return new Payload(
                 assetId,
                 assetName,
