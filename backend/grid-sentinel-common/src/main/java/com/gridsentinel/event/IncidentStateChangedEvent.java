@@ -9,7 +9,7 @@ import java.util.Objects;
  * Event fired when an incident's state changes.
  * Emitted on every state transition in the incident lifecycle.
  */
-public final class IncidentStateChangedEvent extends GridEvent {
+public final class IncidentStateChangedEvent extends GridEvent<IncidentStateChangedEvent.Payload> {
 
     private final String incidentId;
     private final String incidentNumber;
@@ -54,7 +54,7 @@ public final class IncidentStateChangedEvent extends GridEvent {
     }
 
     @Override
-    protected Object payload() {
+    public Payload payload() {
         return new Payload(
                 incidentId,
                 incidentNumber,

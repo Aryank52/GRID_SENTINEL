@@ -9,7 +9,7 @@ import java.util.Objects;
  * Event fired when a threat's severity is escalated.
  * Emitted when ThreatEvent.escalateSeverity() is called.
  */
-public final class ThreatEscalatedEvent extends GridEvent {
+public final class ThreatEscalatedEvent extends GridEvent<ThreatEscalatedEvent.Payload> {
 
     private final String threatEventId;
     private final String previousSeverity;
@@ -36,7 +36,7 @@ public final class ThreatEscalatedEvent extends GridEvent {
     }
 
     @Override
-    protected Object payload() {
+    public Payload payload() {
         return new Payload(threatEventId, previousSeverity, newSeverity, escalationReason);
     }
 

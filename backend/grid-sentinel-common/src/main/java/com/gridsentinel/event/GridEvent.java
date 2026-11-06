@@ -11,8 +11,10 @@ import java.util.UUID;
 /**
  * Base class for all grid events.
  * Events are immutable and carry all information needed for transport, routing, and audit.
+ * 
+ * @param <P> the type of the event payload
  */
-public abstract sealed class GridEvent permits
+public abstract sealed class GridEvent<P> permits
         ThreatDetectedEvent,
         ThreatEscalatedEvent,
         IncidentCreatedEvent,
@@ -92,7 +94,9 @@ public abstract sealed class GridEvent permits
 
     public abstract String eventType();
 
-    public GridEventEnvelope toEnvelope() {
+    public abstract P payload();
+
+    public GridEventEnvelope<P> toEnvelope() {
         return GridEventEnvelope.of(
                 eventId,
                 eventType(),
@@ -107,13 +111,11 @@ public abstract sealed class GridEvent permits
         );
     }
 
-    protected abstract Object payload();
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof GridEvent)) return false;
-        GridEvent that = (GridEvent) o;
+        GridEvent<?> that = (GridEvent<?>) o;
         return eventId != null && eventId.equals(that.eventId);
     }
 

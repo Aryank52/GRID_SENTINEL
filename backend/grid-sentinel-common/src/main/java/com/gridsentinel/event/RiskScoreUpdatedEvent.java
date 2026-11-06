@@ -9,7 +9,7 @@ import java.util.Objects;
  * Event fired when a risk score is computed or updated.
  * Emitted when a RiskScore entity is created or updated.
  */
-public final class RiskScoreUpdatedEvent extends GridEvent {
+public final class RiskScoreUpdatedEvent extends GridEvent<RiskScoreUpdatedEvent.Payload> {
 
     private final String riskScoreId;
     private final String assetId;
@@ -63,7 +63,7 @@ public final class RiskScoreUpdatedEvent extends GridEvent {
     }
 
     @Override
-    protected Object payload() {
+    public Payload payload() {
         return new Payload(
                 riskScoreId,
                 assetId,

@@ -8,7 +8,7 @@ import java.util.Objects;
 /**
  * Event fired when recovery progress is updated (milestone completed, phase changed, etc.).
  */
-public final class RecoveryProgressUpdatedEvent extends GridEvent {
+public final class RecoveryProgressUpdatedEvent extends GridEvent<RecoveryProgressUpdatedEvent.Payload> {
 
     private final String recoveryStateId;
     private final String incidentId;
@@ -59,7 +59,7 @@ public final class RecoveryProgressUpdatedEvent extends GridEvent {
     }
 
     @Override
-    protected Object payload() {
+    public Payload payload() {
         return new Payload(
                 recoveryStateId,
                 incidentId,

@@ -12,7 +12,7 @@ import java.util.UUID;
  * Event fired when a new threat is detected by the detection pipeline.
  * Emitted when a ThreatEvent entity is first created and persisted.
  */
-public final class ThreatDetectedEvent extends GridEvent {
+public final class ThreatDetectedEvent extends GridEvent<ThreatDetectedEvent.Payload> {
 
     private final String threatEventId;
     private final String threatType;
@@ -62,7 +62,7 @@ public final class ThreatDetectedEvent extends GridEvent {
     }
 
     @Override
-    protected Object payload() {
+    public Payload payload() {
         return new Payload(
                 threatEventId,
                 threatType,

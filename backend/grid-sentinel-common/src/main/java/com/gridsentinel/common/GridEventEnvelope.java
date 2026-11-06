@@ -11,8 +11,10 @@ import java.util.UUID;
  * Immutable envelope wrapping all grid events for transport and audit.
  * Every grid event is wrapped in this envelope for consistent transport,
  * routing, and audit trail.
+ * 
+ * @param <T> the type of the event payload
  */
-public record GridEventEnvelope(
+public record GridEventEnvelope<T>(
     String eventId,
     String eventType,
     Instant occurredAt,
@@ -21,13 +23,13 @@ public record GridEventEnvelope(
     String aggregateId,
     Long version,
     EventSeverity severity,
-    Object payload,
+    T payload,
     String source
 ) {
     /**
      * Creates a new envelope with generated event ID and current timestamp.
      */
-    public static <T> GridEventEnvelope of(
+    public static <T> GridEventEnvelope<T> of(
             String eventType,
             CorrelationId correlationId,
             String aggregateType,
@@ -36,7 +38,7 @@ public record GridEventEnvelope(
             EventSeverity severity,
             T payload,
             String source) {
-        return new GridEventEnvelope(
+        return new GridEventEnvelope<>(
                 UUID.randomUUID().toString(),
                 eventType,
                 Instant.now(),
@@ -53,7 +55,7 @@ public record GridEventEnvelope(
     /**
      * Creates a new envelope with all fields specified (for reconstruction/replay).
      */
-    public static GridEventEnvelope of(
+    public static <T> GridEventEnvelope<T> of(
             String eventId,
             String eventType,
             Instant occurredAt,
@@ -62,9 +64,9 @@ public record GridEventEnvelope(
             String aggregateId,
             Long version,
             EventSeverity severity,
-            Object payload,
+            T payload,
             String source) {
-        return new GridEventEnvelope(
+        return new GridEventEnvelope<>(
                 eventId,
                 eventType,
                 occurredAt,

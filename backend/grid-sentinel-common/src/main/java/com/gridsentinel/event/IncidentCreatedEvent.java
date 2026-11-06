@@ -9,7 +9,7 @@ import java.util.Objects;
  * Event fired when a new incident is created from a threat or manually.
  * Emitted when an Incident entity is first created and persisted.
  */
-public final class IncidentCreatedEvent extends GridEvent {
+public final class IncidentCreatedEvent extends GridEvent<IncidentCreatedEvent.Payload> {
 
     private final String incidentId;
     private final String incidentNumber;
@@ -56,7 +56,7 @@ public final class IncidentCreatedEvent extends GridEvent {
     }
 
     @Override
-    protected Object payload() {
+    public Payload payload() {
         return new Payload(
                 incidentId,
                 incidentNumber,

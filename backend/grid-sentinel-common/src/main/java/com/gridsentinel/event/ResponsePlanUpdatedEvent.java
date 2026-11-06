@@ -8,7 +8,7 @@ import java.util.Objects;
 /**
  * Event fired when a response plan is created, updated, approved, started, or completed.
  */
-public final class ResponsePlanUpdatedEvent extends GridEvent {
+public final class ResponsePlanUpdatedEvent extends GridEvent<ResponsePlanUpdatedEvent.Payload> {
 
     private final String responsePlanId;
     private final String incidentId;
@@ -54,7 +54,7 @@ public final class ResponsePlanUpdatedEvent extends GridEvent {
     }
 
     @Override
-    protected Object payload() {
+    public Payload payload() {
         return new Payload(
                 responsePlanId,
                 incidentId,

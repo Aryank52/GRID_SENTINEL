@@ -9,7 +9,7 @@ import java.util.Objects;
  * Event fired when a simulation completes (successfully or with failure).
  * Emitted when a Simulation entity transitions to COMPLETED, FAILED, or CANCELLED.
  */
-public final class SimulationCompletedEvent extends GridEvent {
+public final class SimulationCompletedEvent extends GridEvent<SimulationCompletedEvent.Payload> {
 
     private final String simulationId;
     private final String name;
@@ -57,7 +57,7 @@ public final class SimulationCompletedEvent extends GridEvent {
     }
 
     @Override
-    protected Object payload() {
+    public Payload payload() {
         return new Payload(
                 simulationId,
                 name,
