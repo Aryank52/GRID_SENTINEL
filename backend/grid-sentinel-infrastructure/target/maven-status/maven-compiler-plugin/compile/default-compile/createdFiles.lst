@@ -6,6 +6,7 @@ com\gridsentinel\infrastructure\config\JacksonConfig.class
 com\gridsentinel\infrastructure\api\spatial\GeoJsonFeatureCollection$BoundingBox.class
 com\gridsentinel\infrastructure\api\spatial\GeoJsonGeometry$MultiPoint.class
 com\gridsentinel\infrastructure\config\JwtAuthenticationFilter.class
+com\gridsentinel\infrastructure\config\WebSocketConfig.class
 com\gridsentinel\infrastructure\persistence\repository\IncidentRepository.class
 com\gridsentinel\infrastructure\api\spatial\SpatialApiController.class
 com\gridsentinel\infrastructure\api\spatial\GridEdgeProperties$GridEdgePropertiesBuilder.class
@@ -18,14 +19,18 @@ com\gridsentinel\infrastructure\api\spatial\GeoJsonGeometry$Point.class
 com\gridsentinel\infrastructure\api\spatial\GridEdgeProperties.class
 com\gridsentinel\infrastructure\api\spatial\GeoJsonGeometry.class
 com\gridsentinel\infrastructure\api\spatial\SpatialQueryParams.class
+com\gridsentinel\infrastructure\config\StompAuthenticationInterceptor.class
 com\gridsentinel\infrastructure\config\SecurityConfig.class
+com\gridsentinel\infrastructure\config\JwtTokenProvider.class
 com\gridsentinel\infrastructure\api\spatial\AssetProperties$AssetPropertiesBuilder.class
 com\gridsentinel\infrastructure\api\spatial\IncidentProperties.class
 com\gridsentinel\infrastructure\api\spatial\RiskScoreProperties.class
 com\gridsentinel\infrastructure\persistence\repository\GridEdgeRepository.class
 com\gridsentinel\infrastructure\api\spatial\GeoJsonFeatureCollection.class
 com\gridsentinel\infrastructure\api\spatial\GeoJsonFeature.class
+com\gridsentinel\infrastructure\realtime\RealTimeEventService.class
 com\gridsentinel\infrastructure\config\DatabaseConfig.class
+com\gridsentinel\infrastructure\config\StompAuthenticationInterceptor$1.class
 com\gridsentinel\infrastructure\api\spatial\GeoJsonGeometry$MultiPolygon.class
 com\gridsentinel\infrastructure\api\spatial\GeoJsonGeometry$Polygon.class
 com\gridsentinel\infrastructure\persistence\repository\UserRepository.class
@@ -34,3 +39,4 @@ com\gridsentinel\infrastructure\persistence\repository\GridNodeRepository.class
 com\gridsentinel\infrastructure\api\spatial\ThreatEventProperties$ThreatEventPropertiesBuilder.class
 com\gridsentinel\infrastructure\api\spatial\GeoJsonGeometry$LineString.class
 com\gridsentinel\infrastructure\api\spatial\GridNodeProperties$GridNodePropertiesBuilder.class
+com\gridsentinel\infrastructure\realtime\StompRealTimeEventPublisher.class

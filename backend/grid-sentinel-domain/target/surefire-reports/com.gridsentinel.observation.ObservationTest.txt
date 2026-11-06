@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.gridsentinel.observation.ObservationTest
+-------------------------------------------------------------------------------
+Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.186 s -- in com.gridsentinel.observation.ObservationTest
