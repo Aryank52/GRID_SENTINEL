@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ChevronDown, ChevronUp, Circle, Minus, MapPin, AlertTriangle, Activity, Zap, Layers } from 'lucide-react';
+import { ChevronDown, ChevronUp, MapPin, AlertTriangle, Zap, Layers } from 'lucide-react';
 import type { FeatureType } from '../../types/spatial';
 
 export interface LegendProps {
@@ -11,6 +11,105 @@ export interface LegendProps {
   collapsed?: boolean;
   /** Callback when collapse state changes */
   onCollapseChange?: (collapsed: boolean) => void;
+}
+
+/** Incident legend item */
+interface IncidentLegendItem {
+  state: 'ACTIVE_RESPONSE' | 'CONTAINED' | 'RECOVERING' | 'RESOLVED' | 'CLOSED';
+  label: string;
+  color: string;
+  icon: string;
+}
+
+/** Threat legend item */
+interface ThreatLegendItem {
+  severity: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW' | 'INFO';
+  label: string;
+  color: string;
+}
+
+/** Asset legend item */
+interface AssetLegendItem {
+  band: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW' | 'NEGLIGIBLE';
+  label: string;
+  color: string;
+}
+
+/** Node legend item */
+interface NodeLegendItem {
+  type: string;
+  label: string;
+  color: string;
+}
+
+/** Edge legend item */
+interface EdgeLegendItem {
+  type: string;
+  label: string;
+  color: string;
+  dashed?: boolean;
+}
+
+/** Risk legend item */
+interface RiskLegendItem {
+  band: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW' | 'NEGLIGIBLE';
+  label: string;
+  color: string;
+}
+
+/** Union of all legend item types */
+type LegendItem =
+  | IncidentLegendItem
+  | ThreatLegendItem
+  | AssetLegendItem
+  | NodeLegendItem
+  | EdgeLegendItem
+  | RiskLegendItem;
+
+interface LayerConfig {
+  type: FeatureType;
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  items: LegendItem[];
+}
+
+/**
+ * Type guard for incident legend items
+ */
+function isIncidentItem(item: LegendItem): item is IncidentLegendItem {
+  return 'state' in item;
+}
+
+/** Type guard for threat legend items */
+function isThreatItem(item: LegendItem): item is ThreatLegendItem {
+  return 'severity' in item;
+}
+
+/** Type guard for asset legend items */
+function isAssetItem(item: LegendItem): item is AssetLegendItem {
+  return 'band' in item && !('state' in item) && !('severity' in item) && !('type' in item) && !('dashed' in item);
+}
+
+/** Type guard for node legend items */
+function isNodeItem(item: LegendItem): item is NodeLegendItem {
+  return 'type' in item && !('dashed' in item) && !('band' in item) && !('severity' in item) && !('state' in item);
+}
+
+/** Type guard for edge legend items */
+function isEdgeItem(item: LegendItem): item is EdgeLegendItem {
+  return 'type' in item && 'dashed' in item;
+}
+
+/** Type guard for risk legend items */
+function isRiskItem(item: LegendItem): item is RiskLegendItem {
+  return 'band' in item && !('state' in item) && !('severity' in item) && !('type' in item) && !('dashed' in item);
+}
+
+interface LayerConfig {
+  type: FeatureType;
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  items: LegendItem[];
 }
 
 /**
@@ -29,9 +128,9 @@ export function Legend({
     setIsCollapsed(collapsed);
   }, [collapsed]);
 
-  const layerConfig = [
+  const layerConfig: LayerConfig[] = [
     {
-      type: 'incident' as FeatureType,
+      type: 'incident',
       icon: AlertTriangle,
       label: 'Incidents',
       items: [
@@ -43,7 +142,7 @@ export function Legend({
       ],
     },
     {
-      type: 'threat' as FeatureType,
+      type: 'threat',
       icon: AlertTriangle,
       label: 'Threats',
       items: [
@@ -55,7 +154,7 @@ export function Legend({
       ],
     },
     {
-      type: 'asset' as FeatureType,
+      type: 'asset',
       icon: Zap,
       label: 'Assets (Risk)',
       items: [
@@ -67,7 +166,7 @@ export function Legend({
       ],
     },
     {
-      type: 'node' as FeatureType,
+      type: 'node',
       icon: MapPin,
       label: 'Grid Nodes',
       items: [
@@ -82,7 +181,7 @@ export function Legend({
       ],
     },
     {
-      type: 'edge' as FeatureType,
+      type: 'edge',
       icon: Layers,
       label: 'Grid Edges',
       items: [
@@ -96,7 +195,7 @@ export function Legend({
       ],
     },
     {
-      type: 'risk' as FeatureType,
+      type: 'risk',
       icon: Zap,
       label: 'Risk Heatmap',
       items: [
@@ -115,6 +214,8 @@ export function Legend({
     onCollapseChange?.(newState);
   };
 
+  const ChevronIcon = isCollapsed ? ChevronDown : ChevronUp;
+
   return (
     <div className="fixed bottom-4 left-4 z-50">
       <div className="card bg-white shadow-xl border border-grid-200 w-72 overflow-hidden">
@@ -129,7 +230,7 @@ export function Legend({
             className="btn btn-ghost btn-icon p-1"
             aria-label={isCollapsed ? 'Expand legend' : 'Collapse legend'}
           >
-            {isCollapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
+            <ChevronIcon className="w-4 h-4" />
           </button>
         </div>
 
@@ -160,25 +261,65 @@ export function Legend({
                     <div className="space-y-1.5 pl-6">
                       {layer.items.map((item, index) => (
                         <div key={index} className="flex items-center gap-2 text-xs text-grid-700">
-                          {item.icon ? (
-                            <span className="w-4 h-4 flex items-center justify-center">{item.icon}</span>
-                          ) : item.dashed ? (
-                            <span className="w-6 h-1 border-t-2 border-dashed" style={{ borderColor: item.color }} />
-                          ) : (
-                            <span className="w-4 h-4 rounded-full" style={{ backgroundColor: item.color }} />
+                          {/* Incident items */}
+                          {isIncidentItem(item) && (
+                            <>
+                              <span className="w-4 h-4 flex items-center justify-center">{item.icon}</span>
+                              <span>{item.label}</span>
+                              <span className="text-grid-400">({item.state})</span>
+                            </>
                           )}
-                          <span>{item.label}</span>
-                          {item.severity && <span className="text-grid-400">({item.severity})</span>}
-                          {item.band && <span className="text-grid-400">({item.band})</span>}
-                          {item.state && <span className="text-grid-400">({item.state})</span>}
-                          {item.type && <span className="text-grid-400">({item.type})</span>}
+                          {/* Threat items */}
+                          {isThreatItem(item) && (
+                            <>
+                              <span className="w-4 h-4 rounded-full" style={{ backgroundColor: item.color }} />
+                              <span>{item.label}</span>
+                              <span className="text-grid-400">({item.severity})</span>
+                            </>
+                          )}
+                          {/* Asset items */}
+                          {isAssetItem(item) && (
+                            <>
+                              <span className="w-4 h-4 rounded-full" style={{ backgroundColor: item.color }} />
+                              <span>{item.label}</span>
+                              <span className="text-grid-400">({item.band})</span>
+                            </>
+                          )}
+                          {/* Node items */}
+                          {isNodeItem(item) && (
+                            <>
+                              <span className="w-4 h-4 rounded-full" style={{ backgroundColor: item.color }} />
+                              <span>{item.label}</span>
+                              <span className="text-grid-400">({item.type})</span>
+                            </>
+                          )}
+                          {/* Edge items */}
+                          {isEdgeItem(item) && (
+                            <>
+                              {item.dashed ? (
+                                <span className="w-6 h-1 border-t-2 border-dashed" style={{ borderColor: item.color }} />
+                              ) : (
+                                <span className="w-4 h-4 rounded-full" style={{ backgroundColor: item.color }} />
+                              )}
+                              <span>{item.label}</span>
+                              <span className="text-grid-400">({item.type})</span>
+                            </>
+                          )}
+                          {/* Risk items */}
+                          {isRiskItem(item) && (
+                            <>
+                              <span className="w-4 h-4 rounded-full" style={{ backgroundColor: item.color }} />
+                              <span>{item.label}</span>
+                              <span className="text-grid-400">({item.band})</span>
+                            </>
+                          )}
                         </div>
                       ))}
                     </div>
                   )}
-              </fieldset>
-            );
-          })}
+                </fieldset>
+              );
+            })}
           </div>
         )}
       </div>

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo } from 'react';
 import type { Map } from 'maplibre-gl';
 import type { AssetProperties, GeoJsonFeatureCollection } from '@spatial/spatial';
 import maplibregl, { FilterSpecification } from 'maplibre-gl';
@@ -278,7 +278,7 @@ export function AssetLayerWithPopup({
   maxZoom = 22,
   visible: _visible = true,
 }: AssetLayerProps) {
-  const popupRef = useRef<maplibregl.Popup | null>(null);
+  const popupRef = { current: null as maplibregl.Popup | null };
 
   useEffect(() => {
     if (!map || !map.isStyleLoaded() || !data) return;

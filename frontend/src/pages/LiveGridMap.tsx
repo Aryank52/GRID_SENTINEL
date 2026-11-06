@@ -1,21 +1,13 @@
-import { useState, useCallback, useMemo, useEffect } from 'react';
-import { Map, Layers, Filter, Eye, Maximize, Minimize, MapPin, AlertTriangle, Zap, Activity, RefreshCw, Home, Settings } from 'lucide-react';
+import { useState, useCallback, useMemo } from 'react';
+import { Map, Layers, Maximize, Minimize, MapPin, AlertTriangle, Zap, Activity, RefreshCw, Home } from 'lucide-react';
 import { PageTemplate } from '../components/ui/PageTemplate';
 import { Button } from '../components/ui/Button';
-import { Badge } from '../components/ui/Badge';
-import { Card, CardHeader } from '../components/ui/Card';
 import { MapLibreMap, useMapLibre } from '../components/map/MapLibreMap';
-import { GridNodeLayer } from '../components/map/GridNodeLayer';
-import { GridEdgeLayer } from '../components/map/GridEdgeLayer';
-import { AssetLayer } from '../components/map/AssetLayer';
-import { ThreatLayer } from '../components/map/ThreatLayer';
-import { IncidentLayer } from '../components/map/IncidentLayer';
-import { RiskLayer } from '../components/map/RiskLayer';
 import { MapFilters } from '../components/map/MapFilters';
 import { DetailDrawer } from '../components/map/DetailDrawer';
 import { Legend } from '../components/map/Legend';
 import { useViewportSpatialData } from '../hooks/useSpatialData';
-import type { FeatureType, SpatialQueryParams, GeoJsonFeature } from '@spatial/spatial';
+import type { FeatureType, SpatialQueryParams, GeoJsonFeature, SelectedFeature } from '@spatial/spatial';
 
 type LayerType = 'nodes' | 'edges' | 'assets' | 'threats' | 'incidents' | 'risk';
 
@@ -48,6 +40,7 @@ export function LiveGridMap() {
 
   // Get map methods
   const mapMethods = useMapLibre();
+  const _map = mapMethods?.getMap();
 
   // Spatial query parameters derived from viewport and UI state
   const spatialParams = useMemo((): SpatialQueryParams => {
@@ -84,19 +77,17 @@ export function LiveGridMap() {
       incidentState: undefined,
       incidentSeverity: undefined,
       activeOnly: true,
-      // Risk filters
-      riskBand: undefined,
     };
   }, [viewport]);
 
   // Fetch spatial data for current viewport
   const {
-    nodes,
-    edges,
-    assets,
-    threats,
-    incidents,
-    riskScores,
+    nodes: _nodes,
+    edges: _edges,
+    assets: _assets,
+    threats: _threats,
+    incidents: _incidents,
+    riskScores: _riskScores,
     isLoading,
     isError,
     error,
@@ -116,8 +107,8 @@ export function LiveGridMap() {
   });
 
   // Handle feature selection
-  const handleFeatureClick = useCallback((feature: GeoJsonFeature<any>, type: FeatureType) => {
-    setSelectedFeature({ feature, type });
+  const handleFeatureClick = useCallback((selectedFeature: SelectedFeature) => {
+    setSelectedFeature({ feature: selectedFeature.feature, type: selectedFeature.feature.properties?.type as FeatureType || 'unknown' });
   }, []);
 
   // Handle layer visibility toggle
@@ -131,16 +122,15 @@ export function LiveGridMap() {
   }, []);
 
   // Handle map load - fit to data bounds if available
-  const handleMapLoad = useCallback((map: any) => {
+  const handleMapLoad = useCallback((_map: any) => {
     // Could fit to data bounds here if needed
     console.log('Map loaded');
   }, []);
 
   // Toggle fullscreen
   const toggleFullscreen = useCallback(() => {
-    const map = mapMethods.getMap();
-    if (map) {
-      const container = map.getContainer();
+    if (_map) {
+      const container = _map.getContainer();
       if (!isFullscreen) {
         if (container.requestFullscreen) {
           container.requestFullscreen();
@@ -153,16 +143,18 @@ export function LiveGridMap() {
         setIsFullscreen(false);
       }
     }
-  }, [isFullscreen, mapMethods]);
+  }, [isFullscreen, _map]);
 
   // Reset view to default
   const resetView = useCallback(() => {
-    mapMethods.flyTo({
-      center: [-98.5795, 39.8283],
-      zoom: 4,
-      duration: 1000,
-    });
-  }, [mapMethods]);
+    if (_map) {
+      _map.flyTo({
+        center: [-98.5795, 39.8283],
+        zoom: 4,
+        duration: 1000,
+      });
+    }
+  }, [_map]);
 
   // Refresh data
   const handleRefresh = useCallback(() => {
@@ -171,9 +163,9 @@ export function LiveGridMap() {
 
   // Determine which feature type is selected for drawer
   const selectedFeatureType = selectedFeature?.type;
-  const selectedFeatureData = selectedFeature?.feature;
+  const selectedFeatureData = selectedFeature?.feature ?? null;
 
-  const isDrawerOpen = !!selectedFeatureData;
+  const isDrawerOpen = selectedFeatureData !== null;
 
   return (
     <PageTemplate

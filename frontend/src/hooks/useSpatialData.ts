@@ -153,14 +153,14 @@ export function useViewportSpatialData(
     includeIncidents?: boolean;
     includeRisk?: boolean;
     layerFilters?: {
-      assetType?: string;
-      criticality?: string;
-      riskBand?: string;
-      nodeType?: string;
-      edgeType?: string;
-      severity?: string;
-      threatType?: string;
-      incidentState?: string;
+      assetType?: string[];
+      criticality?: string[];
+      riskBand?: string[];
+      nodeType?: string[];
+      edgeType?: string[];
+      severity?: string[];
+      threatType?: string[];
+      incidentState?: string[];
     };
   }
 ) {

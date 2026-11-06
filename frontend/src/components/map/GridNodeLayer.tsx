@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import type { Map } from 'maplibre-gl';
 import type { GridNodeProperties, GeoJsonFeatureCollection, GeoJsonFeature } from '@spatial/spatial';
 
@@ -184,7 +184,7 @@ export function GridNodeLayerWithPopup({
   maxZoom = 22,
   visible: _visible = true,
 }: GridNodeLayerProps) {
-  const popupRef = useRef<maplibregl.Popup | null>(null);
+  const popupRef = { current: null as maplibregl.Popup | null };
 
   useEffect(() => {
     if (!map || !map.isStyleLoaded() || !data) return;

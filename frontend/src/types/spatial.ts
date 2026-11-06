@@ -50,26 +50,27 @@ export interface SpatialQueryParams {
   bbox?: string; // "minLng,minLat,maxLng,maxLat"
   limit?: number;
   offset?: number;
-  assetType?: string;
-  criticality?: string;
-  riskBand?: string;
+  assetType?: string[];
+  criticality?: string[];
+  riskBand?: string[];
   minHealthIndex?: number;
   maxHealthIndex?: number;
-  nodeType?: string;
+  nodeType?: string[];
   minVoltageKv?: number;
   maxVoltageKv?: number;
-  edgeType?: string;
-  severity?: string;
-  threatType?: string;
-  threatStatus?: string;
+  edgeType?: string[];
+  severity?: string[];
+  threatType?: string[];
+  threatStatus?: string[];
   minConfidence?: number;
   detectedAfter?: string;
   detectedBefore?: string;
-  incidentState?: string;
-  incidentSeverity?: string;
+  incidentState?: string[];
+  incidentSeverity?: string[];
   activeOnly?: boolean;
   minRiskScore?: number;
   maxRiskScore?: number;
+  showOnlyActionable?: boolean;
 }
 
 /**

@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { X, Filter, ChevronDown, ChevronUp, Layers, AlertTriangle, MapPin, Activity, Zap } from 'lucide-react';
 import type { SpatialQueryParams } from '../../types/spatial';
 
@@ -44,7 +44,7 @@ export function MapFilters({
   const [localFilters, setLocalFilters] = useState<SpatialQueryParams>(filters);
 
   // Sync with parent filters
-  useState(() => {
+  useEffect(() => {
     setLocalFilters(filters);
   }, [filters]);
 
@@ -64,7 +64,7 @@ export function MapFilters({
   }, [onFiltersChange]);
 
   const hasActiveFilters = useMemo(() => {
-    return Object.entries(localFilters).some(([key, value]) => {
+    return Object.entries(localFilters).some(([key, value]: [string, any]) => {
       if (['limit', 'offset', 'bbox'].includes(key)) return false;
       return value !== undefined && value !== null && value !== '';
     });
@@ -119,7 +119,7 @@ export function MapFilters({
         {hasActiveFilters && (
           <div className="px-4 py-2 border-b border-grid-100 bg-grid-50">
             <div className="flex flex-wrap gap-1.5">
-              {Object.entries(localFilters).map(([key, value]) => {
+              {Object.entries(localFilters).map(([key, value]: [string, any]) => {
                 if (!value || ['limit', 'offset', 'bbox'].includes(key)) return null;
                 const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, c => c.toUpperCase());
                 return (
@@ -330,17 +330,6 @@ export function MapFilters({
                 </label>
               ))}
             </div>
-            <div className="flex items-center gap-2">
-              <label className="flex items-center gap-2 text-sm text-grid-700">
-                <input
-                  type="checkbox"
-                  checked={localFilters.showOnlyActionable || false}
-                  onChange={(e) => updateFilter('showOnlyActionable', e.target.checked)}
-                  className="w-4 h-4 rounded border-grid-300 text-primary-600 focus:ring-primary-500"
-                />
-                Actionable only (confidence ≥ 0.7, severity ≥ MEDIUM)
-              </label>
-            </div>
           </fieldset>
 
           {/* Incident Filters */}
@@ -411,4 +400,3 @@ export function MapFilters({
   );
 }
 
-import { useMemo } from 'react';
