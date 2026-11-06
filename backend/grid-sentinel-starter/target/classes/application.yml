@@ -1,23 +1,46 @@
-# Grid Sentinel Application Configuration
-# Profile: default (development)
-
-server:
-  port: 8080
-  servlet:
-    context-path: /api/v1
-  error:
-    include-message: always
-    include-binding-errors: always
-
 spring:
   application:
     name: grid-sentinel
-
-  # Database
+  profiles:
+    active: dev
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+  datasource:
+    url: jdbc:h2:mem:grid_sentinel;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+    hikari:
+      maximum-pool-size: 10
+  flyway:
+    enabled: false
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        format_sql: true
+        use_sql_comments: true
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080
+  websocket:
+    allowed-origins: "http://localhost:5173,http://localhost:3000"
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
   datasource:
     url: jdbc:postgresql://localhost:5432/grid_sentinel
-    username: gridsentinel
-    password: ${DB_PASSWORD:changeme}
+    username: grid_sentinel
+    password: grid_sentinel
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 20
@@ -25,118 +48,41 @@ spring:
       connection-timeout: 30000
       idle-timeout: 600000
       max-lifetime: 1800000
-
-  # JPA / Hibernate
-  jpa:
-    open-in-view: false
-    properties:
-      hibernate:
-        default_schema: public
-        jdbc:
-          lob:
-            non_contextual_creation: true
-    hibernate:
-      ddl-auto: validate # Flyway manages schema
-
-  # Flyway
   flyway:
     enabled: true
+    locations: classpath:db/migration
     baseline-on-migrate: true
     validate-on-migrate: true
-    locations: classpath:db/migration
-    default-schema: public
-
-  # Jackson
-  jackson:
-    serialization:
-      write-dates-as-timestamps: false
-    deserialization:
-      fail-on-unknown-properties: false
-
-  # Security
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+        use_sql_comments: true
+        dialect: org.hibernate.dialect.PostgisPG95Dialect
   security:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: ${APP_JWT_ISSUER:grid-sentinel}
+          issuer-uri: http://localhost:8080
+  websocket:
+    allowed-origins: "http://localhost:5173,http://localhost:3000"
 
-# Actuator
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,metrics,prometheus,loggers
-    health:
-      show-details: when-authorized
-  endpoint:
-    health:
-      probes:
-        enabled: true
-  metrics:
-    tags:
-      application: ${spring.application.name}
-    export:
-      prometheus:
-        enabled: true
-
-# OpenAPI / SpringDoc
-springdoc:
-  api-docs:
-    path: /v3/api-docs
-  swagger-ui:
-    path: /swagger-ui.html
-    operations-sorter: method
-    tags-sorter: alpha
-  packages-to-scan: com.gridsentinel.api
-  default-produces-media-type: application/json
-  default-consumes-media-type: application/json
-
-# Application-specific
 app:
   jwt:
-    secret: ${JWT_SECRET:changemechangemechangemechangemechangemechangeme}
-    issuer: grid-sentinel
-    access-token-ttl-minutes: 15
-    refresh-token-ttl-days: 7
+    secret: "grid-sentinel-development-secret-key-at-least-32-chars-long-for-hmac-sha256"
+    issuer: "grid-sentinel"
+    access-token-expiration: 3600
+    refresh-token-expiration: 604800
 
-  # Risk engine defaults
-  risk:
-    default-model: deterministic-baseline
-    default-version: 1.0.0
-    cache-ttl-minutes: 60
+server:
+  port: 8080
+  servlet:
+    context-path: /api/v1
 
-  # Detection engine defaults
-  detection:
-    default-strategy: rule-based-fusion
-    default-version: 1.0.0
-    confidence-threshold: 0.7
-
-  # Simulation defaults
-  simulation:
-    default-strategy: graph-cascade
-    default-version: 1.0.0
-    default-random-seed: 42
-    max-concurrent-simulations: 5
-
-  # Copilot
-  copilot:
-    enabled: true
-    model: gpt-4o-mini
-    max-tokens: 2000
-    temperature: 0.1
-    require-grounding: true
-
-# Logging
 logging:
   level:
     com.gridsentinel: DEBUG
-    org.springframework.security: INFO
-    org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
-  pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
-    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
-  file:
-    name: logs/grid-sentinel.log
-    max-size: 100MB
-    max-history: 30
+    org.springframework.web.socket: DEBUG
+    org.springframework.messaging: DEBUG

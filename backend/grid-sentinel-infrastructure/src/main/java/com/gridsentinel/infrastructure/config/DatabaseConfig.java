@@ -10,6 +10,7 @@ import org.springframework.boot.autoconfigure.orm.jpa.HibernatePropertiesCustomi
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
 import org.springframework.orm.jpa.JpaVendorAdapter;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
@@ -19,12 +20,14 @@ import java.util.Properties;
 
 /**
  * Database and JPA configuration for PostGIS spatial support.
+ * Supports both PostgreSQL (production) and H2 (development) profiles.
  */
 @Configuration
 public class DatabaseConfig {
 
     @Bean
     @Primary
+    @Profile("prod")
     public Flyway flyway(@FlywayDataSource DataSource dataSource,
                          @Value("${spring.flyway.locations:classpath:db/migration}") String locations,
                          @Value("${spring.flyway.baseline-on-migrate:true}") boolean baselineOnMigrate,
@@ -48,14 +51,14 @@ public class DatabaseConfig {
             properties.put(AvailableSettings.ORDER_INSERTS, true);
             properties.put(AvailableSettings.ORDER_UPDATES, true);
             properties.put(AvailableSettings.BATCH_VERSIONED_DATA, true);
-            // BATCH_SIZE and JDBC_BATCH_VERSIONED_DATA not available in Hibernate 6
             // Spatial handling
             properties.put("hibernate.spatial.use_geolatte", false); // Use JTS
         };
     }
 
     @Bean
-    public JpaVendorAdapter jpaVendorAdapter() {
+    @Profile("prod")
+    public JpaVendorAdapter postgresJpaVendorAdapter() {
         HibernateJpaVendorAdapter adapter = new HibernateJpaVendorAdapter();
         adapter.setDatabasePlatform("org.hibernate.dialect.PostgisPG95Dialect");
         adapter.setShowSql(false);
@@ -64,8 +67,18 @@ public class DatabaseConfig {
     }
 
     @Bean
+    @Profile("dev")
+    public JpaVendorAdapter h2JpaVendorAdapter() {
+        HibernateJpaVendorAdapter adapter = new HibernateJpaVendorAdapter();
+        adapter.setDatabasePlatform("org.hibernate.dialect.H2Dialect");
+        adapter.setShowSql(true);
+        adapter.setGenerateDdl(true); // H2 with ddl-auto: create-drop
+        return adapter;
+    }
+
+    @Bean
     public LocalContainerEntityManagerFactoryBean entityManagerFactory(DataSource dataSource,
-                                                                        JpaVendorAdapter jpaVendorAdapter) {
+                                                                       JpaVendorAdapter jpaVendorAdapter) {
         LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
         em.setDataSource(dataSource);
         em.setJpaVendorAdapter(jpaVendorAdapter);

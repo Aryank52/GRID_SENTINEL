@@ -32,8 +32,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final Key signingKey;
     private final String issuer;
 
-    public JwtAuthenticationFilter(@Value("${app.jwt.secret}") String secret,
-                                    @Value("${app.jwt.issuer:grid-sentinel}") String issuer) {
+    public JwtAuthenticationFilter(@Value("${app.jwt.secret:grid-sentinel-development-secret-key-at-least-32-chars-long-for-hmac-sha256}") String secret,
+                                     @Value("${app.jwt.issuer:grid-sentinel}") String issuer) {
         this.signingKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         this.issuer = issuer;
     }

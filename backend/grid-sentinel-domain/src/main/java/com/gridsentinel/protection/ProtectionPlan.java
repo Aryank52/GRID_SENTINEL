@@ -2,12 +2,16 @@ package com.gridsentinel.protection;
 
 import com.gridsentinel.common.CommonKernel;
 import com.gridsentinel.risk.ProtectionAction;
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.AttributeOverrides;
+import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -31,6 +35,9 @@ import java.util.Objects;
 public class ProtectionPlan {
 
     @Id
+    @AttributeOverrides({
+        @AttributeOverride(name = "value", column = @Column(name = "protection_plan_id", nullable = false))
+    })
     @Setter(AccessLevel.PRIVATE)
     private CommonKernel.ProtectionPlanId id;
 
@@ -59,9 +66,11 @@ public class ProtectionPlan {
     @Setter(AccessLevel.PRIVATE)
     private Double budgetLimit;
 
+    @Transient
     @Setter(AccessLevel.PRIVATE)
     private CommonKernel.UserId createdBy;
 
+    @Transient
     @Setter(AccessLevel.PRIVATE)
     private CommonKernel.UserId approvedBy;
 
@@ -71,6 +80,7 @@ public class ProtectionPlan {
     @Setter(AccessLevel.PRIVATE)
     private Instant approvedAt;
 
+    @Transient
     @Setter(AccessLevel.PRIVATE)
     private CommonKernel.CorrelationId correlationId;
 

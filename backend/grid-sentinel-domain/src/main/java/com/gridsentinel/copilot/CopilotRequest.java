@@ -1,12 +1,16 @@
 package com.gridsentinel.copilot;
 
 import com.gridsentinel.common.CommonKernel;
-import jakarta.persistence.Embeddable;
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.AttributeOverrides;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
@@ -41,12 +45,22 @@ public class CopilotRequest {
     @Setter(AccessLevel.PRIVATE)
     private String prompt; // User's question or task
 
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "incidentId.value", column = @Column(name = "grounding_incident_id")),
+        @AttributeOverride(name = "assetId.value", column = @Column(name = "grounding_asset_id")),
+        @AttributeOverride(name = "simulationId.value", column = @Column(name = "grounding_simulation_id")),
+        @AttributeOverride(name = "riskScoreId.value", column = @Column(name = "grounding_risk_score_id")),
+        @AttributeOverride(name = "threatEventId.value", column = @Column(name = "grounding_threat_event_id"))
+    })
     @Setter(AccessLevel.PRIVATE)
     private GroundingContext groundingContext; // Structured system state for grounding
 
+    @Transient
     @Setter(AccessLevel.PRIVATE)
     private CommonKernel.UserId requestedBy;
 
+    @Transient
     @Setter(AccessLevel.PRIVATE)
     private CommonKernel.CorrelationId correlationId;
 

@@ -38,7 +38,7 @@
         <archunit.version>1.4.1</archunit.version>
         <assertj.version>3.26.3</assertj.version>
         <jakarta.validation.version>3.1.1</jakarta.validation.version>
-        <springdoc.version>2.7.0</springdoc.version>
+        <springdoc.version>2.3.0</springdoc.version>
         <onnxruntime.version>1.19.2</onnxruntime.version>
         <opencv.version>4.9.0-0</opencv.version>
         <tribuo.version>0.7.0</tribuo.version>

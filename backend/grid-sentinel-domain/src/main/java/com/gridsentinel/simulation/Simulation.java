@@ -2,12 +2,21 @@ package com.gridsentinel.simulation;
 
 import com.gridsentinel.common.CommonKernel;
 import com.gridsentinel.grid.TopologySnapshot;
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.AttributeOverrides;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
@@ -40,6 +49,9 @@ import java.util.UUID;
 public class Simulation {
 
     @Id
+    @AttributeOverrides({
+        @AttributeOverride(name = "value", column = @Column(name = "simulation_id", nullable = false))
+    })
     @Setter(AccessLevel.PRIVATE)
     private CommonKernel.SimulationId id;
 
@@ -57,6 +69,7 @@ public class Simulation {
     @Setter(AccessLevel.PRIVATE)
     private CommonKernel.SimulationStatus status = CommonKernel.SimulationStatus.PENDING;
 
+    @Transient
     @Setter(AccessLevel.PRIVATE)
     private TopologySnapshot topologySnapshot; // Transient, not persisted directly
 
@@ -73,18 +86,25 @@ public class Simulation {
     private Long randomSeed;
 
     @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "randomSeed", column = @Column(name = "parameters_random_seed"))
+    })
     @Setter(AccessLevel.PRIVATE)
     private SimulationParameters parameters;
 
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @JoinColumn(name = "result_id", unique = true)
     @Setter(AccessLevel.PRIVATE)
     private ImpactResult result;
 
     @Setter(AccessLevel.PRIVATE)
     private String errorMessage;
 
+    @Transient
     @Setter(AccessLevel.PRIVATE)
     private CommonKernel.UserId requestedBy;
 
+    @Transient
     @Setter(AccessLevel.PRIVATE)
     private CommonKernel.CorrelationId correlationId;
 

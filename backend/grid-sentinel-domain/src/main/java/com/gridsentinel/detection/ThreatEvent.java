@@ -2,6 +2,9 @@ package com.gridsentinel.detection;
 
 import com.gridsentinel.common.CommonKernel;
 import com.gridsentinel.observation.Evidence;
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.AttributeOverrides;
+import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
@@ -9,6 +12,7 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -36,6 +40,9 @@ import java.util.UUID;
 public class ThreatEvent {
 
     @Id
+    @AttributeOverrides({
+        @AttributeOverride(name = "value", column = @Column(name = "threat_event_id", nullable = false))
+    })
     @Setter(AccessLevel.PRIVATE)
     private CommonKernel.ThreatEventId id;
 
@@ -77,6 +84,9 @@ public class ThreatEvent {
     private String rationale; // Why the system thinks it matters
 
     @ElementCollection
+    @AttributeOverrides({
+        @AttributeOverride(name = "value", column = @Column(name = "evidence_value"))
+    })
     @Setter(AccessLevel.PRIVATE)
     private Set<Evidence> supportingEvidence = new HashSet<>();
 
@@ -89,6 +99,7 @@ public class ThreatEvent {
     @Setter(AccessLevel.PRIVATE)
     private ThreatStatus status = ThreatStatus.NEW;
 
+    @Transient
     @Setter(AccessLevel.PRIVATE)
     private CommonKernel.CorrelationId correlationId;
 

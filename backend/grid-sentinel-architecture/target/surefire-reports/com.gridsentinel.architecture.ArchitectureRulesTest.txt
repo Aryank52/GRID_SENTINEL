@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: com.gridsentinel.architecture.ArchitectureRulesTest
 -------------------------------------------------------------------------------
-Tests run: 27, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 7.047 s -- in com.gridsentinel.architecture.ArchitectureRulesTest
+Tests run: 27, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 16.94 s -- in com.gridsentinel.architecture.ArchitectureRulesTest

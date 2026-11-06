@@ -1,8 +1,9 @@
 package com.gridsentinel.response;
 
 import com.gridsentinel.common.CommonKernel;
+import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Embeddable;
-import jakarta.persistence.ElementCollection;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
@@ -33,7 +34,6 @@ import java.util.UUID;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ResponseAction {
 
-    @Id
     @Setter(AccessLevel.PRIVATE)
     private CommonKernel.ResponseActionId id;
 
@@ -59,7 +59,7 @@ public final class ResponseAction {
     @Setter(AccessLevel.PRIVATE)
     private ActionStatus status = ActionStatus.PENDING;
 
-    @ElementCollection
+    @Convert(converter = ResponseActionIdSetConverter.class)
     @Setter(AccessLevel.PRIVATE)
     private Set<CommonKernel.ResponseActionId> dependsOn = new HashSet<>();
 

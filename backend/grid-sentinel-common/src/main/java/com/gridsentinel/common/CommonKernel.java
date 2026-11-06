@@ -229,6 +229,10 @@ public final class CommonKernel {
             return new ResponseActionId(Objects.requireNonNull(value, "ResponseActionId value cannot be null"));
         }
 
+        public static ResponseActionId fromString(String value) {
+            return new ResponseActionId(UUID.fromString(value));
+        }
+
         public static ResponseActionId generate() {
             return new ResponseActionId(UUID.randomUUID());
         }

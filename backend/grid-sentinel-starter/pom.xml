@@ -71,6 +71,13 @@
             <artifactId>hibernate-spatial</artifactId>
         </dependency>
 
+        <!-- H2 Database for development profile -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
         <!-- Flyway -->
         <dependency>
             <groupId>org.flywaydb</groupId>

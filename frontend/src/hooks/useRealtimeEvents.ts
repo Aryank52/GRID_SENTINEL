@@ -16,6 +16,17 @@ import type {
   ConnectionStatus,
   EventHistoryEntry,
 } from '../types/realtime';
+import {
+  isThreatDetectedEvent,
+  isThreatEscalatedEvent,
+  isIncidentCreatedEvent,
+  isIncidentStateChangedEvent,
+  isRiskScoreUpdatedEvent,
+  isSimulationCompletedEvent,
+  isResponsePlanUpdatedEvent,
+  isRecoveryProgressUpdatedEvent,
+  isGridAssetStatusChangedEvent,
+} from '../types/realtime';
 
 // =========================================================================
 // Event Message Formatting
@@ -25,32 +36,37 @@ import type {
  * Create a human-readable message from an event
  */
 function createEventMessage(event: RealtimeEvent): string {
-  const payload = event.payload as any;
-  
-  switch (event.eventType) {
-    case 'ThreatDetected':
-      return `Threat detected: ${payload.threatType} (${payload.severity}) - ${payload.description}`;
-    case 'ThreatEscalated':
-      return `Threat escalated: ${payload.previousSeverity} → ${payload.newSeverity} - ${payload.escalationReason}`;
-    case 'IncidentCreated':
-      return `Incident created: ${payload.incidentNumber} (${payload.state}) - ${payload.description}`;
-    case 'IncidentStateChanged':
-      return `Incident ${payload.incidentNumber}: ${payload.previousState} → ${payload.newState}`;
-    case 'RiskScoreUpdated':
-      return `Risk score updated for asset ${payload.assetId}: ${payload.previousScore?.toFixed(2) || 'N/A'} → ${payload.newScore?.toFixed(2)} (${payload.newBand})`;
-    case 'SimulationCompleted':
-      return `Simulation completed: ${payload.name} (${payload.status})`;
-    case 'ResponsePlanUpdated':
-      return `Response plan ${payload.action}: ${payload.name} (${payload.newStatus})`;
-    case 'RecoveryProgressUpdated':
-      return `Recovery progress: ${payload.previousPhase} → ${payload.newPhase} (${(payload.newProgress * 100).toFixed(0)}%)`;
-    case 'GridAssetStatusChanged':
-      return `Asset status changed: ${payload.assetName} (${payload.assetType}) - ${payload.previousHealthStatus} → ${payload.newHealthStatus}`;
+  // Use type guards for proper payload typing
+  if (isThreatDetectedEvent(event)) {
+    return `Threat detected: ${event.payload.threatType} (${event.payload.severity}) - ${event.payload.description}`;
   }
-  
-  // Exhaustiveness check - TypeScript ensures all cases are handled
+  if (isThreatEscalatedEvent(event)) {
+    return `Threat escalated: ${event.payload.previousSeverity} → ${event.payload.newSeverity} - ${event.payload.escalationReason}`;
+  }
+  if (isIncidentCreatedEvent(event)) {
+    return `Incident created: ${event.payload.incidentNumber} (${event.payload.state}) - ${event.payload.description}`;
+  }
+  if (isIncidentStateChangedEvent(event)) {
+    return `Incident ${event.payload.incidentNumber}: ${event.payload.previousState} → ${event.payload.newState}`;
+  }
+  if (isRiskScoreUpdatedEvent(event)) {
+    return `Risk score updated for asset ${event.payload.assetId}: ${event.payload.previousScore?.toFixed(2) || 'N/A'} → ${event.payload.newScore?.toFixed(2)} (${event.payload.newBand})`;
+  }
+  if (isSimulationCompletedEvent(event)) {
+    return `Simulation completed: ${event.payload.name} (${event.payload.status})`;
+  }
+  if (isResponsePlanUpdatedEvent(event)) {
+    return `Response plan ${event.payload.action}: ${event.payload.name} (${event.payload.newStatus})`;
+  }
+  if (isRecoveryProgressUpdatedEvent(event)) {
+    return `Recovery progress: ${event.payload.previousPhase} → ${event.payload.newPhase} (${(event.payload.newProgress * 100).toFixed(0)}%)`;
+  }
+  if (isGridAssetStatusChangedEvent(event)) {
+    return `Asset status changed: ${event.payload.assetName} (${event.payload.assetType}) - ${event.payload.previousHealthStatus} → ${event.payload.newHealthStatus}`;
+  }
+  // Exhaustiveness check - should never reach here if all event types are handled
   const _exhaustive: never = event;
-  return _exhaustive;
+  return `${_exhaustive} event`;
 }
 
 // Deduplication cache configuration
@@ -166,91 +182,76 @@ export function useRealtimeEvents() {
     event: RealtimeEvent,
     qc: ReturnType<typeof useQueryClient>
   ): void => {
-    const { eventType, payload, aggregateId } = event;
+    const { aggregateId } = event;
     
-    switch (eventType) {
-      case 'ThreatDetected': {
-        // New threat - invalidate threats list and update map
-        qc.invalidateQueries({ queryKey: ['threats'] });
-        qc.invalidateQueries({ queryKey: ['threats', 'active'] });
-        qc.invalidateQueries({ queryKey: ['spatial', 'threats'] });
-        break;
-      }
-      
-      case 'ThreatEscalated': {
-        // Threat severity changed - invalidate threats
-        qc.invalidateQueries({ queryKey: ['threats'] });
-        qc.invalidateQueries({ queryKey: ['spatial', 'threats'] });
-        // Could also update specific threat in cache if needed
-        break;
-      }
-      
-      case 'IncidentCreated': {
-        // New incident - invalidate incidents list and active incidents
-        qc.invalidateQueries({ queryKey: ['incidents'] });
-        qc.invalidateQueries({ queryKey: ['incidents', 'active'] });
-        qc.invalidateQueries({ queryKey: ['spatial', 'incidents'] });
-        break;
-      }
-      
-      case 'IncidentStateChanged': {
-        // Incident state changed - invalidate specific incident and lists
+    // Use type guards for type-safe payload access
+    if (isThreatDetectedEvent(event) || isThreatEscalatedEvent(event)) {
+      // Threat events - invalidate threats list and spatial threats
+      qc.invalidateQueries({ queryKey: ['threats'] });
+      qc.invalidateQueries({ queryKey: ['threats', 'active'] });
+      qc.invalidateQueries({ queryKey: ['spatial', 'threats'] });
+      return;
+    }
+    
+    if (isIncidentCreatedEvent(event) || isIncidentStateChangedEvent(event)) {
+      // Incident events - invalidate incidents list and spatial incidents
+      qc.invalidateQueries({ queryKey: ['incidents'] });
+      qc.invalidateQueries({ queryKey: ['incidents', 'active'] });
+      qc.invalidateQueries({ queryKey: ['spatial', 'incidents'] });
+      if (isIncidentStateChangedEvent(event)) {
         qc.invalidateQueries({ queryKey: ['incidents', aggregateId] });
-        qc.invalidateQueries({ queryKey: ['incidents'] });
-        qc.invalidateQueries({ queryKey: ['incidents', 'active'] });
-        qc.invalidateQueries({ queryKey: ['spatial', 'incidents'] });
-        break;
       }
-      
-      case 'RiskScoreUpdated': {
-        // Risk score updated - invalidate asset risk and risk summaries
-        const assetId = (payload as any).assetId;
-        if (assetId) {
-          qc.invalidateQueries({ queryKey: ['risk', 'asset', assetId] });
-        }
-        qc.invalidateQueries({ queryKey: ['risk', 'summary'] });
-        qc.invalidateQueries({ queryKey: ['spatial', 'risk'] });
-        break;
+      return;
+    }
+    
+    if (isRiskScoreUpdatedEvent(event)) {
+      // Risk score updated - invalidate asset risk and risk summaries
+      const assetId = event.payload.assetId;
+      if (assetId) {
+        qc.invalidateQueries({ queryKey: ['risk', 'asset', assetId] });
       }
-      
-      case 'SimulationCompleted': {
-        // Simulation completed - invalidate simulation results
-        qc.invalidateQueries({ queryKey: ['simulations'] });
-        qc.invalidateQueries({ queryKey: ['simulations', aggregateId] });
-        qc.invalidateQueries({ queryKey: ['spatial', 'simulation', aggregateId] });
-        break;
+      qc.invalidateQueries({ queryKey: ['risk', 'summary'] });
+      qc.invalidateQueries({ queryKey: ['spatial', 'risk'] });
+      return;
+    }
+    
+    if (isSimulationCompletedEvent(event)) {
+      // Simulation completed - invalidate simulation results
+      qc.invalidateQueries({ queryKey: ['simulations'] });
+      qc.invalidateQueries({ queryKey: ['simulations', aggregateId] });
+      qc.invalidateQueries({ queryKey: ['spatial', 'simulation', aggregateId] });
+      return;
+    }
+    
+    if (isResponsePlanUpdatedEvent(event)) {
+      // Response plan updated - invalidate response plans
+      qc.invalidateQueries({ queryKey: ['response-plans'] });
+      qc.invalidateQueries({ queryKey: ['response-plans', aggregateId] });
+      const incidentId = event.payload.incidentId;
+      if (incidentId) {
+        qc.invalidateQueries({ queryKey: ['incidents', incidentId, 'response-plan'] });
       }
-      
-      case 'ResponsePlanUpdated': {
-        // Response plan updated - invalidate response plans
-        qc.invalidateQueries({ queryKey: ['response-plans'] });
-        qc.invalidateQueries({ queryKey: ['response-plans', aggregateId] });
-        const incidentId = (payload as any).incidentId;
-        if (incidentId) {
-          qc.invalidateQueries({ queryKey: ['incidents', incidentId, 'response-plan'] });
-        }
-        break;
+      return;
+    }
+    
+    if (isRecoveryProgressUpdatedEvent(event)) {
+      // Recovery progress updated - invalidate recovery state
+      qc.invalidateQueries({ queryKey: ['recovery', aggregateId] });
+      qc.invalidateQueries({ queryKey: ['recovery'] });
+      const incidentId = event.payload.incidentId;
+      if (incidentId) {
+        qc.invalidateQueries({ queryKey: ['incidents', incidentId, 'recovery'] });
       }
-      
-      case 'RecoveryProgressUpdated': {
-        // Recovery progress updated - invalidate recovery state
-        qc.invalidateQueries({ queryKey: ['recovery', aggregateId] });
-        qc.invalidateQueries({ queryKey: ['recovery'] });
-        const incidentId = (payload as any).incidentId;
-        if (incidentId) {
-          qc.invalidateQueries({ queryKey: ['incidents', incidentId, 'recovery'] });
-        }
-        break;
-      }
-      
-      case 'GridAssetStatusChanged': {
-        // Asset status changed - invalidate asset and spatial data
-        qc.invalidateQueries({ queryKey: ['assets', aggregateId] });
-        qc.invalidateQueries({ queryKey: ['assets'] });
-        qc.invalidateQueries({ queryKey: ['spatial', 'assets'] });
-        qc.invalidateQueries({ queryKey: ['risk', 'asset', aggregateId] });
-        break;
-      }
+      return;
+    }
+    
+    if (isGridAssetStatusChangedEvent(event)) {
+      // Asset status changed - invalidate asset and spatial data
+      qc.invalidateQueries({ queryKey: ['assets', aggregateId] });
+      qc.invalidateQueries({ queryKey: ['assets'] });
+      qc.invalidateQueries({ queryKey: ['spatial', 'assets'] });
+      qc.invalidateQueries({ queryKey: ['risk', 'asset', aggregateId] });
+      return;
     }
   }, []);
 
