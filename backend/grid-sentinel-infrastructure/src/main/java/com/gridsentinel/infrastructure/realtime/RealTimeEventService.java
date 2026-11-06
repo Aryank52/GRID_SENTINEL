@@ -279,7 +279,7 @@ public class RealTimeEventService {
                 previousPhase != null ? previousPhase.name() : null,
                 recovery.getPhase() != null ? recovery.getPhase().name() : null,
                 previousProgress,
-                recovery.getProgress(),
+                recovery.getOverallProgress(),
                 milestoneId,
                 milestoneName,
                 milestoneCompleted,

@@ -78,8 +78,8 @@ public class StompAuthenticationInterceptor implements ChannelInterceptor {
     }
 
     private void handleSubscribe(StompHeaderAccessor accessor) {
-        Authentication auth = accessor.getUser();
-        if (auth == null || !auth.isAuthenticated()) {
+        var principal = accessor.getUser();
+        if (principal == null || !(principal instanceof Authentication auth) || !auth.isAuthenticated()) {
             throw new IllegalStateException("Unauthenticated subscription attempt");
         }
 
