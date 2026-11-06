@@ -1,0 +1,5 @@
+# Created at 2026-11-06T15:45:15.595
+Boot Manifest-JAR contains absolute paths in classpath 'E:\PROJECTS\GRID_SENTINEL\backend\grid-sentinel-infrastructure\target\test-classes'
+Hint: <argLine>-Djdk.net.URLClassPath.disableClassPathURLCheck=true</argLine>
+'other' has different root
+
