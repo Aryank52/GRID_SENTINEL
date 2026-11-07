@@ -1,13 +1,14 @@
 package com.gridsentinel.simulation;
 
 import com.gridsentinel.common.CommonKernel;
-import com.gridsentinel.grid.GridNode;
-import com.gridsentinel.grid.GridEdge;
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.AttributeOverrides;
+import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
-import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -37,6 +38,10 @@ public class ImpactResult {
     private String resultId; // Same as simulation ID
 
     @NotNull
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "value", column = @Column(name = "simulation_id", nullable = false, columnDefinition = "uuid"))
+    })
     @Setter(AccessLevel.PRIVATE)
     private CommonKernel.SimulationId simulationId;
 
@@ -56,19 +61,19 @@ public class ImpactResult {
     private Boolean converged;
 
     // Affected elements
-    @ElementCollection
+    @Transient
     @Setter(AccessLevel.PRIVATE)
     private Set<String> affectedAssetIds = new HashSet<>();
 
-    @ElementCollection
+    @Transient
     @Setter(AccessLevel.PRIVATE)
     private Set<String> affectedNodeIds = new HashSet<>();
 
-    @ElementCollection
+    @Transient
     @Setter(AccessLevel.PRIVATE)
     private Set<String> affectedEdgeIds = new HashSet<>();
 
-    @ElementCollection
+    @Transient
     @Setter(AccessLevel.PRIVATE)
     private Set<String> deenergizedLoadIds = new HashSet<>();
 
@@ -95,9 +100,9 @@ public class ImpactResult {
     private Double maxFrequencyDeviationHz = 0.0;
 
     // Alternate paths and redundancy
-    @ElementCollection
+    @Transient
     @Setter(AccessLevel.PRIVATE)
-    private Map<String, String> alternatePaths = new HashMap<>(); // nodeId -> path description
+    private Map<String, String> alternatePaths = new HashMap<>();
 
     @Setter(AccessLevel.PRIVATE)
     private Integer islandsFormed = 0;
@@ -105,47 +110,44 @@ public class ImpactResult {
     @Setter(AccessLevel.PRIVATE)
     private Double largestIslandLoadMw = 0.0;
 
-    // Detailed per-asset impact
-    @ElementCollection
-    @Setter(AccessLevel.PRIVATE)
-    private Map<String, AssetImpact> assetImpacts = new HashMap<>();
-
-    // Cascading failure trace
-    @ElementCollection
-    @Setter(AccessLevel.PRIVATE)
-    private Map<Integer, Set<String>> cascadeSteps = new HashMap<>(); // iteration -> failed asset IDs
-
     @Setter(AccessLevel.PRIVATE)
     private String strategyName;
 
     @Setter(AccessLevel.PRIVATE)
     private String strategyVersion;
 
-    private ImpactResult(Builder builder) {
-        this.resultId = builder.simulationId.getValue().toString();
-        this.simulationId = Objects.requireNonNull(builder.simulationId, "Simulation ID cannot be null");
-        this.scenarioId = Objects.requireNonNull(builder.scenarioId, "Scenario ID cannot be null");
-        this.computedAt = builder.computedAt != null ? builder.computedAt : Instant.now();
-        this.iterationsRun = Objects.requireNonNull(builder.iterationsRun, "Iterations run cannot be null");
-        this.converged = Objects.requireNonNull(builder.converged, "Converged flag cannot be null");
-        this.affectedAssetIds = Set.copyOf(builder.affectedAssetIds);
-        this.affectedNodeIds = Set.copyOf(builder.affectedNodeIds);
-        this.affectedEdgeIds = Set.copyOf(builder.affectedEdgeIds);
-        this.deenergizedLoadIds = Set.copyOf(builder.deenergizedLoadIds);
-        this.totalLoadLostMw = builder.totalLoadLostMw;
-        this.totalCustomersAffected = builder.totalCustomersAffected;
-        this.estimatedRestorationTimeHours = builder.estimatedRestorationTimeHours;
-        this.economicImpactUsd = builder.economicImpactUsd;
-        this.maxVoltageDeviationPu = builder.maxVoltageDeviationPu;
-        this.maxThermalLoadingPu = builder.maxThermalLoadingPu;
-        this.maxFrequencyDeviationHz = builder.maxFrequencyDeviationHz;
-        this.alternatePaths = Map.copyOf(builder.alternatePaths);
-        this.islandsFormed = builder.islandsFormed;
-        this.largestIslandLoadMw = builder.largestIslandLoadMw;
-        this.assetImpacts = Map.copyOf(builder.assetImpacts);
-        this.cascadeSteps = Map.copyOf(builder.cascadeSteps);
-        this.strategyName = builder.strategyName;
-        this.strategyVersion = builder.strategyVersion;
+    public ImpactResult(String resultId, CommonKernel.SimulationId simulationId, String scenarioId,
+                        Instant computedAt, Integer iterationsRun, Boolean converged,
+                        Set<String> affectedAssetIds, Set<String> affectedNodeIds,
+                        Set<String> affectedEdgeIds, Set<String> deenergizedLoadIds,
+                        Double totalLoadLostMw, Double totalCustomersAffected,
+                        Double estimatedRestorationTimeHours, Double economicImpactUsd,
+                        Double maxVoltageDeviationPu, Double maxThermalLoadingPu,
+                        Double maxFrequencyDeviationHz, Map<String, String> alternatePaths,
+                        Integer islandsFormed, Double largestIslandLoadMw,
+                        String strategyName, String strategyVersion) {
+        this.resultId = resultId;
+        this.simulationId = Objects.requireNonNull(simulationId, "Simulation ID cannot be null");
+        this.scenarioId = Objects.requireNonNull(scenarioId, "Scenario ID cannot be null");
+        this.computedAt = computedAt != null ? computedAt : Instant.now();
+        this.iterationsRun = Objects.requireNonNull(iterationsRun, "Iterations run cannot be null");
+        this.converged = Objects.requireNonNull(converged, "Converged flag cannot be null");
+        this.affectedAssetIds = Set.copyOf(affectedAssetIds);
+        this.affectedNodeIds = Set.copyOf(affectedNodeIds);
+        this.affectedEdgeIds = Set.copyOf(affectedEdgeIds);
+        this.deenergizedLoadIds = Set.copyOf(deenergizedLoadIds);
+        this.totalLoadLostMw = totalLoadLostMw;
+        this.totalCustomersAffected = totalCustomersAffected;
+        this.estimatedRestorationTimeHours = estimatedRestorationTimeHours;
+        this.economicImpactUsd = economicImpactUsd;
+        this.maxVoltageDeviationPu = maxVoltageDeviationPu;
+        this.maxThermalLoadingPu = maxThermalLoadingPu;
+        this.maxFrequencyDeviationHz = maxFrequencyDeviationHz;
+        this.alternatePaths = Map.copyOf(alternatePaths);
+        this.islandsFormed = islandsFormed;
+        this.largestIslandLoadMw = largestIslandLoadMw;
+        this.strategyName = strategyName;
+        this.strategyVersion = strategyVersion;
     }
 
     public Set<String> getAffectedAssetIds() {
@@ -166,14 +168,6 @@ public class ImpactResult {
 
     public Map<String, String> getAlternatePaths() {
         return Collections.unmodifiableMap(alternatePaths);
-    }
-
-    public Map<String, AssetImpact> getAssetImpacts() {
-        return Collections.unmodifiableMap(assetImpacts);
-    }
-
-    public Map<Integer, Set<String>> getCascadeSteps() {
-        return Collections.unmodifiableMap(cascadeSteps);
     }
 
     /**
@@ -205,8 +199,8 @@ public class ImpactResult {
         return resultId != null ? resultId.hashCode() : 0;
     }
 
-    public static Builder builder() {
-        return new Builder();
+    public static ImpactResultBuilder builder() {
+        return new ImpactResultBuilder();
     }
 
     public record ImpactSummary(
@@ -220,7 +214,7 @@ public class ImpactResult {
             boolean converged
     ) {}
 
-    public static final class Builder {
+    public static final class ImpactResultBuilder {
         private CommonKernel.SimulationId simulationId;
         private String scenarioId;
         private Instant computedAt;
@@ -240,130 +234,126 @@ public class ImpactResult {
         private Map<String, String> alternatePaths = new HashMap<>();
         private Integer islandsFormed = 0;
         private Double largestIslandLoadMw = 0.0;
-        private Map<String, AssetImpact> assetImpacts = new HashMap<>();
-        private Map<Integer, Set<String>> cascadeSteps = new HashMap<>();
         private String strategyName;
         private String strategyVersion;
 
-        private Builder() {}
+        private ImpactResultBuilder() {}
 
-        public Builder simulationId(CommonKernel.SimulationId simulationId) {
-            this.simulationId = simulationId;
+        public ImpactResultBuilder simulationId(CommonKernel.SimulationId simulationId) {
+            this.simulationId = Objects.requireNonNull(simulationId);
             return this;
         }
 
-        public Builder scenarioId(String scenarioId) {
-            this.scenarioId = scenarioId;
+        public ImpactResultBuilder scenarioId(String scenarioId) {
+            this.scenarioId = Objects.requireNonNull(scenarioId);
             return this;
         }
 
-        public Builder computedAt(Instant computedAt) {
+        public ImpactResultBuilder computedAt(Instant computedAt) {
             this.computedAt = computedAt;
             return this;
         }
 
-        public Builder iterationsRun(int iterationsRun) {
+        public ImpactResultBuilder iterationsRun(int iterationsRun) {
             this.iterationsRun = iterationsRun;
             return this;
         }
 
-        public Builder converged(boolean converged) {
+        public ImpactResultBuilder converged(Boolean converged) {
             this.converged = converged;
             return this;
         }
 
-        public Builder addAffectedAssetId(String assetId) {
+        public ImpactResultBuilder addAffectedAssetId(String assetId) {
             this.affectedAssetIds.add(Objects.requireNonNull(assetId));
             return this;
         }
 
-        public Builder addAffectedNodeId(String nodeId) {
+        public ImpactResultBuilder addAffectedNodeId(String nodeId) {
             this.affectedNodeIds.add(Objects.requireNonNull(nodeId));
             return this;
         }
 
-        public Builder addAffectedEdgeId(String edgeId) {
+        public ImpactResultBuilder addAffectedEdgeId(String edgeId) {
             this.affectedEdgeIds.add(Objects.requireNonNull(edgeId));
             return this;
         }
 
-        public Builder addDeenergizedLoadId(String loadId) {
+        public ImpactResultBuilder addDeenergizedLoadId(String loadId) {
             this.deenergizedLoadIds.add(Objects.requireNonNull(loadId));
             return this;
         }
 
-        public Builder totalLoadLostMw(double totalLoadLostMw) {
+        public ImpactResultBuilder totalLoadLostMw(double totalLoadLostMw) {
             this.totalLoadLostMw = totalLoadLostMw;
             return this;
         }
 
-        public Builder totalCustomersAffected(double totalCustomersAffected) {
+        public ImpactResultBuilder totalCustomersAffected(double totalCustomersAffected) {
             this.totalCustomersAffected = totalCustomersAffected;
             return this;
         }
 
-        public Builder estimatedRestorationTimeHours(double estimatedRestorationTimeHours) {
+        public ImpactResultBuilder estimatedRestorationTimeHours(double estimatedRestorationTimeHours) {
             this.estimatedRestorationTimeHours = estimatedRestorationTimeHours;
             return this;
         }
 
-        public Builder economicImpactUsd(double economicImpactUsd) {
+        public ImpactResultBuilder economicImpactUsd(double economicImpactUsd) {
             this.economicImpactUsd = economicImpactUsd;
             return this;
         }
 
-        public Builder maxVoltageDeviationPu(double maxVoltageDeviationPu) {
+        public ImpactResultBuilder maxVoltageDeviationPu(double maxVoltageDeviationPu) {
             this.maxVoltageDeviationPu = maxVoltageDeviationPu;
             return this;
         }
 
-        public Builder maxThermalLoadingPu(double maxThermalLoadingPu) {
+        public ImpactResultBuilder maxThermalLoadingPu(double maxThermalLoadingPu) {
             this.maxThermalLoadingPu = maxThermalLoadingPu;
             return this;
         }
 
-        public Builder maxFrequencyDeviationHz(double maxFrequencyDeviationHz) {
+        public ImpactResultBuilder maxFrequencyDeviationHz(double maxFrequencyDeviationHz) {
             this.maxFrequencyDeviationHz = maxFrequencyDeviationHz;
             return this;
         }
 
-        public Builder alternatePath(String nodeId, String pathDescription) {
-            this.alternatePaths.put(Objects.requireNonNull(nodeId), Objects.requireNonNull(pathDescription));
+        public ImpactResultBuilder addAlternatePath(String nodeId, String path) {
+            this.alternatePaths.put(Objects.requireNonNull(nodeId), Objects.requireNonNull(path));
             return this;
         }
 
-        public Builder islandsFormed(int islandsFormed) {
+        public ImpactResultBuilder islandsFormed(int islandsFormed) {
             this.islandsFormed = islandsFormed;
             return this;
         }
 
-        public Builder largestIslandLoadMw(double largestIslandLoadMw) {
+        public ImpactResultBuilder largestIslandLoadMw(double largestIslandLoadMw) {
             this.largestIslandLoadMw = largestIslandLoadMw;
             return this;
         }
 
-        public Builder assetImpact(String assetId, AssetImpact impact) {
-            this.assetImpacts.put(Objects.requireNonNull(assetId), Objects.requireNonNull(impact));
-            return this;
-        }
-
-        public Builder cascadeStep(int iteration, Set<String> failedAssetIds) {
-            this.cascadeSteps.put(iteration, Set.copyOf(Objects.requireNonNull(failedAssetIds)));
-            return this;
-        }
-
-        public Builder strategyName(String strategyName) {
+        public ImpactResultBuilder strategyName(String strategyName) {
             this.strategyName = strategyName;
             return this;
         }
 
-        public Builder strategyVersion(String strategyVersion) {
+        public ImpactResultBuilder strategyVersion(String strategyVersion) {
             this.strategyVersion = strategyVersion;
             return this;
         }
 
         public ImpactResult build() {
-            return new ImpactResult(this);
+            return new ImpactResult(
+                    simulationId.getValue().toString(),
+                    simulationId, scenarioId, computedAt, iterationsRun, converged,
+                    affectedAssetIds, affectedNodeIds, affectedEdgeIds, deenergizedLoadIds,
+                    totalLoadLostMw, totalCustomersAffected, estimatedRestorationTimeHours,
+                    economicImpactUsd, maxVoltageDeviationPu, maxThermalLoadingPu,
+                    maxFrequencyDeviationHz, alternatePaths, islandsFormed, largestIslandLoadMw,
+                    strategyName, strategyVersion
+            );
         }
     }
 }

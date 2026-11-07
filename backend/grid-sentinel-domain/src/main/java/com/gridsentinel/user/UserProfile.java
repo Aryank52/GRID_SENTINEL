@@ -1,10 +1,15 @@
 package com.gridsentinel.user;
 
 import com.gridsentinel.common.CommonKernel;
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.AttributeOverrides;
+import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
@@ -30,6 +35,9 @@ import java.util.Set;
 public class UserProfile {
 
     @Id
+    @AttributeOverrides({
+        @AttributeOverride(name = "value", column = @Column(name = "user_id", nullable = false, columnDefinition = "uuid"))
+    })
     @Setter(AccessLevel.PRIVATE)
     private CommonKernel.UserId id; // Same as User ID
 
@@ -48,18 +56,34 @@ public class UserProfile {
     @Setter(AccessLevel.PRIVATE)
     private String title;
 
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "value", column = @Column(name = "supervisor_id", columnDefinition = "uuid"))
+    })
     @Setter(AccessLevel.PRIVATE)
     private CommonKernel.UserId supervisorId;
 
-    @ElementCollection
+    // @ElementCollection - Temporarily disabled
+    // @Setter(AccessLevel.PRIVATE)
+    // private Set<String> certifications = new HashSet<>();
+    
+    @Transient
     @Setter(AccessLevel.PRIVATE)
     private Set<String> certifications = new HashSet<>();
 
-    @ElementCollection
+    // @ElementCollection - Temporarily disabled
+    // @Setter(AccessLevel.PRIVATE)
+    // private Set<String> qualifications = new HashSet<>(); // e.g., "HV_SWITCHING", "INCIDENT_COMMAND"
+    
+    @Transient
     @Setter(AccessLevel.PRIVATE)
     private Set<String> qualifications = new HashSet<>(); // e.g., "HV_SWITCHING", "INCIDENT_COMMAND"
 
-    @ElementCollection
+    // @ElementCollection - Temporarily disabled
+    // @Setter(AccessLevel.PRIVATE)
+    // private Map<String, String> preferences = new HashMap<>(); // UI prefs, notification settings
+    
+    @Transient
     @Setter(AccessLevel.PRIVATE)
     private Map<String, String> preferences = new HashMap<>(); // UI prefs, notification settings
 

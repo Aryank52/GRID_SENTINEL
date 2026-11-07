@@ -1,6 +1,7 @@
 package com.gridsentinel.simulation;
 
 import com.gridsentinel.common.CommonKernel;
+import com.gridsentinel.common.SimulationStatus;
 import com.gridsentinel.grid.TopologySnapshot;
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.AttributeOverrides;
@@ -67,7 +68,7 @@ public class Simulation {
     @NotNull
     @Enumerated(EnumType.STRING)
     @Setter(AccessLevel.PRIVATE)
-    private CommonKernel.SimulationStatus status = CommonKernel.SimulationStatus.PENDING;
+    private SimulationStatus status = SimulationStatus.PENDING;
 
     @Transient
     @Setter(AccessLevel.PRIVATE)
@@ -104,7 +105,10 @@ public class Simulation {
     @Setter(AccessLevel.PRIVATE)
     private CommonKernel.UserId requestedBy;
 
-    @Transient
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "value", column = @Column(name = "correlation_id", columnDefinition = "uuid"))
+    })
     @Setter(AccessLevel.PRIVATE)
     private CommonKernel.CorrelationId correlationId;
 
@@ -137,63 +141,63 @@ public class Simulation {
     }
 
     public void start() {
-        if (status != CommonKernel.SimulationStatus.PENDING) {
+        if (status != SimulationStatus.PENDING) {
             throw new CommonKernel.IllegalStateTransitionException(
                     "SIMULATION_ALREADY_STARTED",
                     "Simulation already in state: " + status
             );
         }
-        this.status = CommonKernel.SimulationStatus.RUNNING;
+        this.status = SimulationStatus.RUNNING;
         this.startedAt = Instant.now();
         this.version++;
     }
 
     public void complete(ImpactResult result) {
-        if (status != CommonKernel.SimulationStatus.RUNNING) {
+        if (status != SimulationStatus.RUNNING) {
             throw new CommonKernel.IllegalStateTransitionException(
                     "SIMULATION_NOT_RUNNING",
                     "Cannot complete simulation in state: " + status
             );
         }
-        this.status = CommonKernel.SimulationStatus.COMPLETED;
+        this.status = SimulationStatus.COMPLETED;
         this.result = Objects.requireNonNull(result);
         this.completedAt = Instant.now();
         this.version++;
     }
 
     public void fail(String errorMessage) {
-        if (status != CommonKernel.SimulationStatus.RUNNING) {
+        if (status != SimulationStatus.RUNNING) {
             throw new CommonKernel.IllegalStateTransitionException(
                     "SIMULATION_NOT_RUNNING",
                     "Cannot fail simulation in state: " + status
             );
         }
-        this.status = CommonKernel.SimulationStatus.FAILED;
+        this.status = SimulationStatus.FAILED;
         this.errorMessage = errorMessage;
         this.completedAt = Instant.now();
         this.version++;
     }
 
     public void cancel() {
-        if (status == CommonKernel.SimulationStatus.COMPLETED || status == CommonKernel.SimulationStatus.FAILED) {
+        if (status == SimulationStatus.COMPLETED || status == SimulationStatus.FAILED) {
             throw new CommonKernel.IllegalStateTransitionException(
                     "SIMULATION_ALREADY_TERMINAL",
                     "Cannot cancel completed simulation"
             );
         }
-        this.status = CommonKernel.SimulationStatus.CANCELLED;
+        this.status = SimulationStatus.CANCELLED;
         this.completedAt = Instant.now();
         this.version++;
     }
 
     public boolean isCompleted() {
-        return status == CommonKernel.SimulationStatus.COMPLETED;
+        return status == SimulationStatus.COMPLETED;
     }
 
     public boolean isTerminal() {
-        return status == CommonKernel.SimulationStatus.COMPLETED ||
-               status == CommonKernel.SimulationStatus.FAILED ||
-               status == CommonKernel.SimulationStatus.CANCELLED;
+        return status == SimulationStatus.COMPLETED ||
+               status == SimulationStatus.FAILED ||
+               status == SimulationStatus.CANCELLED;
     }
 
     @Override

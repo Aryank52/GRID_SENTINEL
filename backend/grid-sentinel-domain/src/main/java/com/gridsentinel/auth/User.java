@@ -1,12 +1,15 @@
 package com.gridsentinel.auth;
 
+import com.gridsentinel.auth.Role;
 import com.gridsentinel.common.CommonKernel;
-import jakarta.persistence.ElementCollection;
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.AttributeOverrides;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
+import jakarta.persistence.Embedded;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -31,6 +34,9 @@ import java.util.Set;
 public class User {
 
     @Id
+    @AttributeOverrides({
+        @AttributeOverride(name = "value", column = @Column(name = "user_id", nullable = false, columnDefinition = "uuid"))
+    })
     @Setter(AccessLevel.PRIVATE)
     private CommonKernel.UserId id;
 
@@ -53,11 +59,6 @@ public class User {
     @NotNull
     @Setter(AccessLevel.PRIVATE)
     private String fullName;
-
-    @ElementCollection
-    @Enumerated(EnumType.STRING)
-    @Setter(AccessLevel.PRIVATE)
-    private Set<Role> roles = new HashSet<>();
 
     @Setter(AccessLevel.PRIVATE)
     private Boolean enabled = true;
@@ -89,37 +90,24 @@ public class User {
     @Setter(AccessLevel.PRIVATE)
     private int version;
 
+    @Setter(AccessLevel.PRIVATE)
+    @jakarta.persistence.Enumerated(jakarta.persistence.EnumType.STRING)
+    @jakarta.persistence.ElementCollection(fetch = jakarta.persistence.FetchType.EAGER)
+    @jakarta.persistence.CollectionTable(name = "user_roles", joinColumns = @jakarta.persistence.JoinColumn(name = "user_id"))
+    @jakarta.persistence.Column(name = "role")
+    private Set<Role> roles = new HashSet<>();
+
     private User(Builder builder) {
         this.id = builder.id;
         this.username = Objects.requireNonNull(builder.username, "Username cannot be null").toLowerCase();
         this.email = Objects.requireNonNull(builder.email, "Email cannot be null").toLowerCase();
         this.passwordHash = Objects.requireNonNull(builder.passwordHash, "Password hash cannot be null");
         this.fullName = Objects.requireNonNull(builder.fullName, "Full name cannot be null");
-        this.roles = builder.roles != null ? Set.copyOf(builder.roles) : Set.of(Role.OPERATOR);
         this.enabled = true;
+        this.roles = builder.roles != null ? new HashSet<>(builder.roles) : new HashSet<>();
         this.createdAt = Instant.now();
         this.updatedAt = Instant.now();
         this.version = 0;
-    }
-
-    public void addRole(Role role) {
-        roles.add(Objects.requireNonNull(role));
-        this.updatedAt = Instant.now();
-        this.version++;
-    }
-
-    public void removeRole(Role role) {
-        roles.remove(role);
-        this.updatedAt = Instant.now();
-        this.version++;
-    }
-
-    public boolean hasRole(Role role) {
-        return roles.contains(role);
-    }
-
-    public boolean hasAnyRole(Set<Role> roles) {
-        return this.roles.stream().anyMatch(roles::contains);
     }
 
     public void recordLogin() {
@@ -168,10 +156,6 @@ public class User {
         return enabled && !isAccountLocked();
     }
 
-    public Set<Role> getRoles() {
-        return Collections.unmodifiableSet(roles);
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -189,40 +173,13 @@ public class User {
         return new Builder();
     }
 
-    public enum Role {
-        // Grid operations
-        OPERATOR,           // Field operator
-        DISPATCHER,         // Grid dispatcher
-        INCIDENT_COMMANDER, // Incident command
-        RECOVERY_MANAGER,   // Recovery coordination
-
-        // Planning & Analysis
-        RISK_ANALYST,       // Risk assessment
-        PLANNER,            // Protection/response planning
-        SIMULATION_ENGINEER,// Simulation execution
-
-        // Management
-        SUPERVISOR,         // Shift supervisor
-        MANAGER,            // Department manager
-        DIRECTOR,           // Director level
-
-        // Security & Admin
-        SECURITY_ANALYST,   // Physical/cyber security
-        AUDITOR,            // Compliance audit
-        ADMINISTRATOR,      // System administration
-
-        // Read-only
-        VIEWER,             // Read-only access
-        EXECUTIVE_VIEWER    // Executive dashboard
-    }
-
     public static final class Builder {
         private CommonKernel.UserId id = CommonKernel.UserId.generate();
         private String username;
         private String email;
         private String passwordHash;
         private String fullName;
-        private Set<Role> roles = new HashSet<>();
+        private Set<Role> roles;
 
         private Builder() {}
 
@@ -251,8 +208,8 @@ public class User {
             return this;
         }
 
-        public Builder addRole(Role role) {
-            this.roles.add(Objects.requireNonNull(role));
+        public Builder roles(Set<Role> roles) {
+            this.roles = roles;
             return this;
         }
 

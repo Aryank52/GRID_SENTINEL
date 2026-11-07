@@ -1,11 +1,16 @@
 package com.gridsentinel.audit;
 
 import com.gridsentinel.common.CommonKernel;
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.AttributeOverrides;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
+import jakarta.persistence.Embedded;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
@@ -15,6 +20,7 @@ import lombok.Setter;
 
 import java.time.Instant;
 import java.util.Objects;
+import java.util.UUID;
 
 /**
  * Immutable audit log entry for governance and compliance.
@@ -27,6 +33,9 @@ import java.util.Objects;
 public class AuditLog {
 
     @Id
+    @AttributeOverrides({
+        @AttributeOverride(name = "value", column = @Column(name = "audit_log_id", nullable = false, columnDefinition = "uuid"))
+    })
     @Setter(AccessLevel.PRIVATE)
     private CommonKernel.AuditLogId id;
 
@@ -53,6 +62,10 @@ public class AuditLog {
     @Setter(AccessLevel.PRIVATE)
     private String details; // JSON with before/after or relevant context
 
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "value", column = @Column(name = "actor_id", columnDefinition = "uuid"))
+    })
     @Setter(AccessLevel.PRIVATE)
     private CommonKernel.UserId actorId; // Who performed the action
 
@@ -65,6 +78,10 @@ public class AuditLog {
     @Setter(AccessLevel.PRIVATE)
     private String userAgent; // Client user agent
 
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "value", column = @Column(name = "correlation_id", columnDefinition = "uuid"))
+    })
     @Setter(AccessLevel.PRIVATE)
     private CommonKernel.CorrelationId correlationId; // For tracing related actions
 
@@ -100,42 +117,19 @@ public class AuditLog {
         this.userAgent = builder.userAgent;
         this.correlationId = builder.correlationId != null ? builder.correlationId : CommonKernel.CorrelationId.generate();
         this.causationId = builder.causationId;
-        this.aiAssisted = builder.aiAssisted != null ? builder.aiAssisted : false;
+        this.aiAssisted = builder.aiAssisted;
         this.aiModelVersion = builder.aiModelVersion;
         this.aiRequestId = builder.aiRequestId;
-        this.timestamp = builder.timestamp != null ? builder.timestamp : Instant.now();
-        this.hash = computeHash();
-    }
-
-    private String computeHash() {
-        String content = aggregateType + "|" + aggregateId + "|" + action + "|" +
-                (details != null ? details : "") + "|" +
-                (actorId != null ? actorId.getValue().toString() : "") + "|" +
-                timestamp.toString() + "|" +
-                (correlationId != null ? correlationId.getValue().toString() : "");
-        try {
-            java.security.MessageDigest digest = java.security.MessageDigest.getInstance("SHA-256");
-            byte[] hashBytes = digest.digest(content.getBytes(java.nio.charset.StandardCharsets.UTF_8));
-            StringBuilder hex = new StringBuilder();
-            for (byte b : hashBytes) {
-                hex.append(String.format("%02x", b));
-            }
-            return hex.toString();
-        } catch (Exception e) {
-            throw new IllegalStateException("Failed to compute audit hash", e);
-        }
-    }
-
-    public boolean verifyHash() {
-        return hash.equals(computeHash());
+        this.timestamp = Objects.requireNonNull(builder.timestamp, "Timestamp cannot be null");
+        this.hash = builder.hash;
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof AuditLog)) return false;
-        AuditLog auditLog = (AuditLog) o;
-        return id != null && id.equals(auditLog.id);
+        AuditLog that = (AuditLog) o;
+        return id != null && id.equals(that.id);
     }
 
     @Override
@@ -145,87 +139,6 @@ public class AuditLog {
 
     public static Builder builder() {
         return new Builder();
-    }
-
-    public enum AuditEventType {
-        // Asset lifecycle
-        ASSET_CREATED,
-        ASSET_UPDATED,
-        ASSET_DECOMMISSIONED,
-        ASSET_HEALTH_CHANGED,
-        ASSET_CRITICALITY_CHANGED,
-
-        // Grid topology
-        GRID_NODE_CREATED,
-        GRID_NODE_UPDATED,
-        GRID_EDGE_CREATED,
-        GRID_EDGE_UPDATED,
-        TOPOLOGY_SNAPSHOT_TAKEN,
-
-        // Observation & Detection
-        OBSERVATION_RECEIVED,
-        OBSERVATION_VALIDATED,
-        THREAT_DETECTED,
-        THREAT_TRIAGED,
-        THREAT_ESCALATED,
-        THREAT_DISMISSED,
-
-        // Incident lifecycle
-        INCIDENT_CREATED,
-        INCIDENT_TRIAGED,
-        INCIDENT_CONFIRMED,
-        INCIDENT_RESPONSE_STARTED,
-        INCIDENT_CONTAINED,
-        INCIDENT_RECOVERING,
-        INCIDENT_RESOLVED,
-        INCIDENT_CLOSED,
-        INCIDENT_CANCELLED,
-
-        // Response
-        RESPONSE_PLAN_CREATED,
-        RESPONSE_PLAN_APPROVED,
-        RESPONSE_ACTION_STARTED,
-        RESPONSE_ACTION_COMPLETED,
-        RESPONSE_ACTION_FAILED,
-
-        // Recovery
-        RECOVERY_STARTED,
-        RECOVERY_MILESTONE_COMPLETED,
-        RECOVERY_MILESTONE_VERIFIED,
-        RECOVERY_COMPLETED,
-        LESSONS_LEARNED_RECORDED,
-
-        // Simulation
-        SIMULATION_REQUESTED,
-        SIMULATION_STARTED,
-        SIMULATION_COMPLETED,
-        SIMULATION_FAILED,
-
-        // Protection
-        PROTECTION_PLAN_CREATED,
-        PROTECTION_PLAN_APPROVED,
-        PROTECTION_MEASURE_IMPLEMENTED,
-
-        // Risk
-        RISK_SCORE_COMPUTED,
-        RISK_THRESHOLD_EXCEEDED,
-
-        // Copilot
-        COPILOT_REQUESTED,
-        COPILOT_RESPONSE_GENERATED,
-        COPILOT_RESPONSE_REVIEWED,
-
-        // Security
-        USER_LOGIN,
-        USER_LOGOUT,
-        PERMISSION_DENIED,
-        ROLE_CHANGED,
-        DATA_EXPORTED,
-
-        // System
-        CONFIGURATION_CHANGED,
-        MODEL_DEPLOYED,
-        MODEL_ROLLED_BACK
     }
 
     public static final class Builder {
@@ -245,6 +158,7 @@ public class AuditLog {
         private String aiModelVersion;
         private String aiRequestId;
         private Instant timestamp;
+        private String hash;
 
         private Builder() {}
 
@@ -279,7 +193,7 @@ public class AuditLog {
         }
 
         public Builder actorId(CommonKernel.UserId actorId) {
-            this.actorId = actorId;
+            this.actorId = Objects.requireNonNull(actorId);
             return this;
         }
 
@@ -308,7 +222,7 @@ public class AuditLog {
             return this;
         }
 
-        public Builder aiAssisted(boolean aiAssisted) {
+        public Builder aiAssisted(Boolean aiAssisted) {
             this.aiAssisted = aiAssisted;
             return this;
         }
@@ -325,6 +239,11 @@ public class AuditLog {
 
         public Builder timestamp(Instant timestamp) {
             this.timestamp = timestamp;
+            return this;
+        }
+
+        public Builder hash(String hash) {
+            this.hash = hash;
             return this;
         }
 

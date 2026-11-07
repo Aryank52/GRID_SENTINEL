@@ -1,6 +1,9 @@
 package com.gridsentinel.grid;
 
 import com.gridsentinel.common.CommonKernel;
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.AttributeOverrides;
+import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -39,6 +42,9 @@ import java.util.UUID;
 public class GridNode {
 
     @Id
+    @AttributeOverrides({
+        @AttributeOverride(name = "value", column = @Column(name = "grid_node_id", nullable = false, columnDefinition = "uuid"))
+    })
     @Setter(AccessLevel.PRIVATE)
     private CommonKernel.GridNodeId id;
 
@@ -60,6 +66,10 @@ public class GridNode {
     @Setter(AccessLevel.PRIVATE)
     private CommonKernel.GeometryValueObject geometry; // Point
 
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "value", column = @Column(name = "primary_asset_id", columnDefinition = "uuid"))
+    })
     @Setter(AccessLevel.PRIVATE)
     private CommonKernel.AssetId primaryAssetId; // Main asset at this node
 
@@ -140,17 +150,6 @@ public class GridNode {
 
     public static Builder builder() {
         return new Builder();
-    }
-
-    public enum NodeType {
-        SUBSTATION,           // Transmission/distribution substation
-        SWITCHING_STATION,    // Switching only, no transformation
-        GENERATION,           // Generation plant connection point
-        LOAD,                 // Load center / distribution feeder head
-        JUNCTION,             // Line junction / tap point
-        HVDC_CONVERTER,       // HVDC converter station
-        FACTS_DEVICE,         // FACTS device connection (SVC, STATCOM, etc.)
-        INTERCONNECT          // Interconnection with another grid
     }
 
     public static final class Builder {

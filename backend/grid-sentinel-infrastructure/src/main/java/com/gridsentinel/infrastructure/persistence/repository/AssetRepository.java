@@ -25,7 +25,7 @@ public interface AssetRepository extends JpaRepository<Asset, CommonKernel.Asset
      */
     @Query(value = """
         SELECT a FROM Asset a
-        WHERE a.geometry.geometry && :envelope
+        WHERE ST_Intersects(a.geometry.geometry, :envelope)
         AND a.type = :type
         """)
     List<Asset> findByBboxAndType(@Param("envelope") Envelope envelope,
@@ -36,7 +36,7 @@ public interface AssetRepository extends JpaRepository<Asset, CommonKernel.Asset
      */
     @Query(value = """
         SELECT a FROM Asset a
-        WHERE a.geometry.geometry && :envelope
+        WHERE ST_Intersects(a.geometry.geometry, :envelope)
         """)
     List<Asset> findByBbox(@Param("envelope") Envelope envelope);
 
@@ -45,7 +45,7 @@ public interface AssetRepository extends JpaRepository<Asset, CommonKernel.Asset
      */
     @Query(value = """
         SELECT a FROM Asset a
-        WHERE a.geometry.geometry && :envelope
+        WHERE ST_Intersects(a.geometry.geometry, :envelope)
         AND a.criticality = :criticality
         """)
     List<Asset> findByBboxAndCriticality(@Param("envelope") Envelope envelope,
@@ -57,7 +57,7 @@ public interface AssetRepository extends JpaRepository<Asset, CommonKernel.Asset
     @Query(value = """
         SELECT a FROM Asset a
         LEFT JOIN risk_scores rs ON rs.asset_id = a.id
-        WHERE a.geometry.geometry && :envelope
+        WHERE ST_Intersects(a.geometry.geometry, :envelope)
         AND rs.band = :riskBand
         AND rs.computed_at = (
             SELECT MAX(rs2.computed_at) FROM risk_scores rs2 WHERE rs2.asset_id = a.id
@@ -71,7 +71,7 @@ public interface AssetRepository extends JpaRepository<Asset, CommonKernel.Asset
      */
     @Query(value = """
         SELECT a FROM Asset a
-        WHERE a.geometry.geometry && :envelope
+        WHERE ST_Intersects(a.geometry.geometry, :envelope)
         AND a.healthIndex BETWEEN :minHealth AND :maxHealth
         """)
     List<Asset> findByBboxAndHealthRange(@Param("envelope") Envelope envelope,
@@ -81,14 +81,14 @@ public interface AssetRepository extends JpaRepository<Asset, CommonKernel.Asset
     /**
      * Find asset by ID with geometry.
      */
-    Optional<Asset> findByIdWithGeometry(CommonKernel.AssetId id);
+    Optional<Asset> findById(CommonKernel.AssetId id);
 
     /**
      * Count assets within bounding box.
      */
     @Query(value = """
         SELECT COUNT(a) FROM Asset a
-        WHERE a.geometry.geometry && :envelope
+        WHERE ST_Intersects(a.geometry.geometry, :envelope)
         """)
     long countByBbox(@Param("envelope") Envelope envelope);
 }

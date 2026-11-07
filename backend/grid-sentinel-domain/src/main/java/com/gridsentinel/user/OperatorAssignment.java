@@ -2,6 +2,8 @@ package com.gridsentinel.user;
 
 import com.gridsentinel.common.CommonKernel;
 import jakarta.persistence.Embeddable;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -29,6 +31,7 @@ public final class OperatorAssignment {
     private String assignmentId;
 
     @NotNull
+    @Enumerated(EnumType.STRING)
     @Setter(AccessLevel.PRIVATE)
     private AssignmentType type;
 
@@ -72,16 +75,6 @@ public final class OperatorAssignment {
 
     public boolean isActiveNow() {
         return isActive(Instant.now());
-    }
-
-    public enum AssignmentType {
-        ASSET_RESPONSIBLE,    // Primary responsible for asset
-        ASSET_BACKUP,         // Backup for asset
-        REGION_OPERATOR,      // Covers geographic region
-        SHIFT_DISPATCHER,     // Dispatcher for shift
-        INCIDENT_RESPONDER,   // On-call for incidents
-        INSPECTION_TEAM,      // Scheduled inspections
-        EMERGENCY_CONTACT     // Emergency contact
     }
 
     public static Builder builder() {

@@ -2,18 +2,21 @@ package com.gridsentinel.infrastructure.realtime;
 
 import org.springframework.stereotype.Service;
 
+import com.gridsentinel.common.CommonKernel;
 import com.gridsentinel.common.CommonKernel.CorrelationId;
-import com.gridsentinel.common.CommonKernel.IncidentState;
 import com.gridsentinel.common.CommonKernel.RiskBand;
-import com.gridsentinel.common.CommonKernel.ThreatSeverity;
 import com.gridsentinel.common.CommonKernel.HealthIndex;
 import com.gridsentinel.common.CommonKernel.Criticality;
+import com.gridsentinel.common.IncidentState;
+import com.gridsentinel.common.ThreatSeverity;
 import com.gridsentinel.detection.ThreatEvent;
 import com.gridsentinel.incident.Incident;
 import com.gridsentinel.risk.RiskScore;
 import com.gridsentinel.simulation.Simulation;
 import com.gridsentinel.response.ResponsePlan;
+import com.gridsentinel.response.PlanStatus;
 import com.gridsentinel.recovery.RecoveryState;
+import com.gridsentinel.recovery.RecoveryPhase;
 import com.gridsentinel.asset.Asset;
 
 import java.time.Instant;
@@ -230,13 +233,13 @@ public class RealTimeEventService {
      * Publishes a ResponsePlanUpdatedEvent after a response plan is updated.
      */
     public void publishResponsePlanUpdated(ResponsePlan plan,
-                                            ResponsePlan.PlanStatus previousStatus,
+                                            PlanStatus previousStatus,
                                             String actorId,
                                             String action) {
         if (plan == null || action == null) return;
         
         CorrelationId correlationId = plan.getCorrelationId() != null 
-                ? plan.getCorrelationId() 
+                ? CommonKernel.CorrelationId.of(plan.getCorrelationId()) 
                 : CorrelationId.generate();
 
         com.gridsentinel.event.ResponsePlanUpdatedEvent event = new com.gridsentinel.event.ResponsePlanUpdatedEvent(
@@ -262,7 +265,7 @@ public class RealTimeEventService {
      * Publishes a RecoveryProgressUpdatedEvent after recovery progress is updated.
      */
     public void publishRecoveryProgressUpdated(RecoveryState recovery,
-                                                RecoveryState.RecoveryPhase previousPhase,
+                                                RecoveryPhase previousPhase,
                                                 double previousProgress,
                                                 String milestoneId,
                                                 String milestoneName,

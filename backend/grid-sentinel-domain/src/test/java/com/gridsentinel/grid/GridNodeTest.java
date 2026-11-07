@@ -1,6 +1,7 @@
 package com.gridsentinel.grid;
 
 import com.gridsentinel.common.CommonKernel;
+import com.gridsentinel.grid.NodeType;
 import com.gridsentinel.test.TestGeometryFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -20,14 +21,14 @@ class GridNodeTest {
         GridNode node = GridNode.builder()
                 .id(id)
                 .name("Test Substation")
-                .type(GridNode.NodeType.SUBSTATION)
+                .type(NodeType.SUBSTATION)
                 .geometry(geometry)
                 .voltageLevelKv(220)
                 .build();
 
         assertThat(node.getId()).isEqualTo(id);
         assertThat(node.getName()).isEqualTo("Test Substation");
-        assertThat(node.getType()).isEqualTo(GridNode.NodeType.SUBSTATION);
+        assertThat(node.getType()).isEqualTo(NodeType.SUBSTATION);
         assertThat(node.getGeometry()).isEqualTo(geometry);
         assertThat(node.getVoltageLevelKv()).isEqualTo(220);
         assertThat(node.getVersion()).isEqualTo(0);
@@ -38,7 +39,7 @@ class GridNodeTest {
         assertThatThrownBy(() -> GridNode.builder()
                 .id(CommonKernel.GridNodeId.generate())
                 .name(null)
-                .type(GridNode.NodeType.SUBSTATION)
+                .type(NodeType.SUBSTATION)
                 .geometry(TestGeometryFactory.point(0, 0))
                 .voltageLevelKv(220)
                 .build())
@@ -62,7 +63,7 @@ class GridNodeTest {
         assertThatThrownBy(() -> GridNode.builder()
                 .id(CommonKernel.GridNodeId.generate())
                 .name("Test")
-                .type(GridNode.NodeType.SUBSTATION)
+                .type(NodeType.SUBSTATION)
                 .geometry(null)
                 .voltageLevelKv(220)
                 .build())
@@ -75,7 +76,7 @@ class GridNodeTest {
         assertThatThrownBy(() -> GridNode.builder()
                 .id(CommonKernel.GridNodeId.generate())
                 .name("Test")
-                .type(GridNode.NodeType.SUBSTATION)
+                .type(NodeType.SUBSTATION)
                 .geometry(TestGeometryFactory.point(0, 0))
                 .voltageLevelKv(voltage)
                 .build())
@@ -90,7 +91,7 @@ class GridNodeTest {
         GridNode node1 = GridNode.builder()
                 .id(id)
                 .name("Test")
-                .type(GridNode.NodeType.SUBSTATION)
+                .type(NodeType.SUBSTATION)
                 .geometry(geometry)
                 .voltageLevelKv(220)
                 .build();
@@ -98,7 +99,7 @@ class GridNodeTest {
         GridNode node2 = GridNode.builder()
                 .id(id)
                 .name("Test")
-                .type(GridNode.NodeType.SUBSTATION)
+                .type(NodeType.SUBSTATION)
                 .geometry(geometry)
                 .voltageLevelKv(220)
                 .build();
@@ -112,7 +113,7 @@ class GridNodeTest {
         GridNode node = GridNode.builder()
                 .id(CommonKernel.GridNodeId.generate())
                 .name("Test")
-                .type(GridNode.NodeType.SUBSTATION)
+                .type(NodeType.SUBSTATION)
                 .geometry(TestGeometryFactory.point(0, 0))
                 .voltageLevelKv(220)
                 .build();
@@ -123,7 +124,7 @@ class GridNodeTest {
 
     @Test
     void gridNodeAllTypes() {
-        for (GridNode.NodeType type : GridNode.NodeType.values()) {
+        for (NodeType type : NodeType.values()) {
             GridNode node = GridNode.builder()
                     .id(CommonKernel.GridNodeId.generate())
                     .name("Test " + type)
@@ -141,7 +142,7 @@ class GridNodeTest {
         GridNode substation = GridNode.builder()
                 .id(CommonKernel.GridNodeId.generate())
                 .name("Substation")
-                .type(GridNode.NodeType.SUBSTATION)
+                .type(NodeType.SUBSTATION)
                 .geometry(TestGeometryFactory.point(0, 0))
                 .voltageLevelKv(220)
                 .build();
@@ -149,7 +150,7 @@ class GridNodeTest {
         GridNode switching = GridNode.builder()
                 .id(CommonKernel.GridNodeId.generate())
                 .name("Switching")
-                .type(GridNode.NodeType.SWITCHING_STATION)
+                .type(NodeType.SWITCHING_STATION)
                 .geometry(TestGeometryFactory.point(0, 0))
                 .voltageLevelKv(220)
                 .build();
@@ -157,7 +158,7 @@ class GridNodeTest {
         GridNode generation = GridNode.builder()
                 .id(CommonKernel.GridNodeId.generate())
                 .name("Generation")
-                .type(GridNode.NodeType.GENERATION)
+                .type(NodeType.GENERATION)
                 .geometry(TestGeometryFactory.point(0, 0))
                 .voltageLevelKv(220)
                 .build();

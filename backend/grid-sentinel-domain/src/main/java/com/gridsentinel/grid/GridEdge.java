@@ -1,6 +1,9 @@
 package com.gridsentinel.grid;
 
 import com.gridsentinel.common.CommonKernel;
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.AttributeOverrides;
+import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -37,6 +40,9 @@ import java.util.UUID;
 public class GridEdge {
 
     @Id
+    @AttributeOverrides({
+        @AttributeOverride(name = "value", column = @Column(name = "grid_edge_id", nullable = false, columnDefinition = "uuid"))
+    })
     @Setter(AccessLevel.PRIVATE)
     private CommonKernel.GridEdgeId id;
 
@@ -50,10 +56,18 @@ public class GridEdge {
     private EdgeType type;
 
     @NotNull
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "value", column = @Column(name = "from_node_id", nullable = false, columnDefinition = "uuid"))
+    })
     @Setter(AccessLevel.PRIVATE)
     private CommonKernel.GridNodeId fromNodeId;
 
     @NotNull
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "value", column = @Column(name = "to_node_id", nullable = false, columnDefinition = "uuid"))
+    })
     @Setter(AccessLevel.PRIVATE)
     private CommonKernel.GridNodeId toNodeId;
 
@@ -82,6 +96,10 @@ public class GridEdge {
     @Setter(AccessLevel.PRIVATE)
     private int yearInstalled;
 
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "value", column = @Column(name = "primary_asset_id", columnDefinition = "uuid"))
+    })
     @Setter(AccessLevel.PRIVATE)
     private CommonKernel.AssetId primaryAssetId;
 
@@ -170,20 +188,6 @@ public class GridEdge {
 
     public static Builder builder() {
         return new Builder();
-    }
-
-    public enum EdgeType {
-        TRANSMISSION_LINE,    // Overhead transmission line
-        UNDERGROUND_CABLE,    // Underground cable
-        SUBMARINE_CABLE,      // Submarine cable
-        TRANSFORMER,          // Power transformer (voltage change)
-        PHASE_SHIFTER,        // Phase shifting transformer
-        SERIES_COMPENSATOR,   // Series capacitor/reactor
-        SHUNT_COMPENSATOR,    // Shunt capacitor/reactor
-        HVDC_LINK,            // HVDC transmission link
-        BUSBAR,               // Busbar connection within substation
-        GENERATOR_LEAD,       // Generator step-up / lead
-        LOAD_TAP              // Load tap / feeder
     }
 
     public static final class Builder {

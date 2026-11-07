@@ -1,7 +1,11 @@
 package com.gridsentinel.risk;
 
 import com.gridsentinel.common.CommonKernel;
+import com.gridsentinel.common.RiskBand;
 import com.gridsentinel.asset.Asset;
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.AttributeOverrides;
+import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -40,10 +44,17 @@ import java.util.UUID;
 public class RiskScore {
 
     @Id
+    @AttributeOverrides({
+        @AttributeOverride(name = "value", column = @Column(name = "risk_score_id", nullable = false, columnDefinition = "uuid"))
+    })
     @Setter(AccessLevel.PRIVATE)
     private CommonKernel.RiskScoreId id;
 
     @NotNull
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "value", column = @Column(name = "asset_id", nullable = false, columnDefinition = "uuid"))
+    })
     @Setter(AccessLevel.PRIVATE)
     private CommonKernel.AssetId assetId;
 
@@ -54,7 +65,7 @@ public class RiskScore {
     @NotNull
     @Enumerated(EnumType.STRING)
     @Setter(AccessLevel.PRIVATE)
-    private CommonKernel.RiskBand band;
+    private RiskBand band;
 
     @NotNull
     @Setter(AccessLevel.PRIVATE)
@@ -74,6 +85,10 @@ public class RiskScore {
     @Setter(AccessLevel.PRIVATE)
     private Instant computedAt;
 
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "value", column = @Column(name = "correlation_id", columnDefinition = "uuid"))
+    })
     @Setter(AccessLevel.PRIVATE)
     private CommonKernel.CorrelationId correlationId;
 
@@ -89,7 +104,7 @@ public class RiskScore {
         }
         this.band = Objects.requireNonNull(builder.band, "Band cannot be null");
         // Validate band consistency
-        CommonKernel.RiskBand expectedBand = CommonKernel.RiskBand.fromScore(this.score);
+        RiskBand expectedBand = RiskBand.fromScore(this.score);
         if (this.band != expectedBand) {
             throw new IllegalArgumentException("Band " + this.band + " inconsistent with score " + this.score + " (expected " + expectedBand + ")");
         }
@@ -106,7 +121,7 @@ public class RiskScore {
         return score;
     }
 
-    public CommonKernel.RiskBand getBand() {
+    public RiskBand getBand() {
         return band;
     }
 
@@ -135,7 +150,7 @@ public class RiskScore {
         private CommonKernel.RiskScoreId id = CommonKernel.RiskScoreId.generate();
         private CommonKernel.AssetId assetId;
         private Double score;
-        private CommonKernel.RiskBand band;
+        private RiskBand band;
         private String modelName;
         private String modelVersion;
         private String strategyName;
@@ -157,7 +172,7 @@ public class RiskScore {
 
         public Builder score(double score) {
             this.score = score;
-            this.band = CommonKernel.RiskBand.fromScore(score);
+            this.band = RiskBand.fromScore(score);
             return this;
         }
 

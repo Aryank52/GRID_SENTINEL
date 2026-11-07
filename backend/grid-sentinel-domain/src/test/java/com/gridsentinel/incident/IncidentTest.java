@@ -1,6 +1,8 @@
 package com.gridsentinel.incident;
 
 import com.gridsentinel.common.CommonKernel;
+import com.gridsentinel.common.IncidentState;
+import com.gridsentinel.common.ThreatSeverity;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -21,7 +23,7 @@ class IncidentTest {
                 .id(id)
                 .primaryAssetId(assetId)
                 .correlationId(correlationId)
-                .severity(CommonKernel.ThreatSeverity.HIGH)
+                .severity(ThreatSeverity.HIGH)
                 .description("Thermal camera detected anomaly on transformer T1")
                 .detectedAt(Instant.now())
                 .build();
@@ -29,8 +31,8 @@ class IncidentTest {
         assertThat(incident.getId()).isEqualTo(id);
         assertThat(incident.getPrimaryAssetId()).isEqualTo(assetId);
         assertThat(incident.getCorrelationId()).isEqualTo(correlationId);
-        assertThat(incident.getState()).isEqualTo(CommonKernel.IncidentState.DETECTED);
-        assertThat(incident.getSeverity()).isEqualTo(CommonKernel.ThreatSeverity.HIGH);
+        assertThat(incident.getState()).isEqualTo(IncidentState.DETECTED);
+        assertThat(incident.getSeverity()).isEqualTo(ThreatSeverity.HIGH);
         assertThat(incident.getDescription()).isEqualTo("Thermal camera detected anomaly on transformer T1");
         assertThat(incident.getDetectedAt()).isNotNull();
         assertThat(incident.getVersion()).isEqualTo(0);
@@ -43,7 +45,7 @@ class IncidentTest {
                 .id(CommonKernel.IncidentId.generate())
                 .primaryAssetId(null)
                 .correlationId(CommonKernel.CorrelationId.generate())
-                .severity(CommonKernel.ThreatSeverity.HIGH)
+                .severity(ThreatSeverity.HIGH)
                 .description("Test")
                 .detectedAt(Instant.now())
                 .build();
@@ -57,7 +59,7 @@ class IncidentTest {
                 .id(CommonKernel.IncidentId.generate())
                 .primaryAssetId(CommonKernel.AssetId.generate())
                 .correlationId(CommonKernel.CorrelationId.generate())
-                .severity(CommonKernel.ThreatSeverity.HIGH)
+                .severity(ThreatSeverity.HIGH)
                 .description(null)
                 .detectedAt(Instant.now())
                 .build())
@@ -70,12 +72,12 @@ class IncidentTest {
                 .id(CommonKernel.IncidentId.generate())
                 .primaryAssetId(CommonKernel.AssetId.generate())
                 .correlationId(CommonKernel.CorrelationId.generate())
-                .severity(CommonKernel.ThreatSeverity.HIGH)
+                .severity(ThreatSeverity.HIGH)
                 .description("Test")
                 .detectedAt(Instant.now())
                 .build();
 
-        assertThat(incident.getState()).isEqualTo(CommonKernel.IncidentState.DETECTED);
+        assertThat(incident.getState()).isEqualTo(IncidentState.DETECTED);
     }
 
     // =========================================================================
@@ -88,7 +90,7 @@ class IncidentTest {
                 .id(CommonKernel.IncidentId.generate())
                 .primaryAssetId(CommonKernel.AssetId.generate())
                 .correlationId(CommonKernel.CorrelationId.generate())
-                .severity(CommonKernel.ThreatSeverity.HIGH)
+                .severity(ThreatSeverity.HIGH)
                 .description("Test")
                 .detectedAt(Instant.now())
                 .build();
@@ -97,7 +99,7 @@ class IncidentTest {
         CommonKernel.UserId operatorId = CommonKernel.UserId.generate();
         incident.triage(operatorId, "Initial triage completed");
 
-        assertThat(incident.getState()).isEqualTo(CommonKernel.IncidentState.TRIAGED);
+        assertThat(incident.getState()).isEqualTo(IncidentState.TRIAGED);
         assertThat(incident.getVersion()).isEqualTo(oldVersion + 1);
         assertThat(incident.getTriagedAt()).isNotNull();
         assertThat(incident.getAssignedOperatorId()).isEqualTo(operatorId);
@@ -109,7 +111,7 @@ class IncidentTest {
         CommonKernel.UserId operatorId = CommonKernel.UserId.generate();
         incident.confirm(operatorId, "Confirmed by field crew");
 
-        assertThat(incident.getState()).isEqualTo(CommonKernel.IncidentState.CONFIRMED);
+        assertThat(incident.getState()).isEqualTo(IncidentState.CONFIRMED);
         assertThat(incident.getConfirmedAt()).isNotNull();
     }
 
@@ -119,7 +121,7 @@ class IncidentTest {
         CommonKernel.UserId commanderId = CommonKernel.UserId.generate();
         incident.startResponse(commanderId, "Response team deployed");
 
-        assertThat(incident.getState()).isEqualTo(CommonKernel.IncidentState.ACTIVE_RESPONSE);
+        assertThat(incident.getState()).isEqualTo(IncidentState.ACTIVE_RESPONSE);
         assertThat(incident.getResponseStartedAt()).isNotNull();
         assertThat(incident.getIncidentCommanderId()).isEqualTo(commanderId);
     }
@@ -130,7 +132,7 @@ class IncidentTest {
         CommonKernel.UserId operatorId = CommonKernel.UserId.generate();
         incident.contain(operatorId, "Fire contained");
 
-        assertThat(incident.getState()).isEqualTo(CommonKernel.IncidentState.CONTAINED);
+        assertThat(incident.getState()).isEqualTo(IncidentState.CONTAINED);
         assertThat(incident.getContainedAt()).isNotNull();
     }
 
@@ -140,7 +142,7 @@ class IncidentTest {
         CommonKernel.UserId operatorId = CommonKernel.UserId.generate();
         incident.startRecovery(operatorId, "Recovery started");
 
-        assertThat(incident.getState()).isEqualTo(CommonKernel.IncidentState.RECOVERING);
+        assertThat(incident.getState()).isEqualTo(IncidentState.RECOVERING);
         assertThat(incident.getRecoveringAt()).isNotNull();
     }
 
@@ -150,7 +152,7 @@ class IncidentTest {
         CommonKernel.UserId operatorId = CommonKernel.UserId.generate();
         incident.resolve(operatorId, "All systems restored");
 
-        assertThat(incident.getState()).isEqualTo(CommonKernel.IncidentState.RESOLVED);
+        assertThat(incident.getState()).isEqualTo(IncidentState.RESOLVED);
         assertThat(incident.getResolvedAt()).isNotNull();
     }
 
@@ -160,7 +162,7 @@ class IncidentTest {
         CommonKernel.UserId operatorId = CommonKernel.UserId.generate();
         incident.close(operatorId, "Incident closed after review");
 
-        assertThat(incident.getState()).isEqualTo(CommonKernel.IncidentState.CLOSED);
+        assertThat(incident.getState()).isEqualTo(IncidentState.CLOSED);
         assertThat(incident.getClosedAt()).isNotNull();
     }
 
@@ -174,7 +176,7 @@ class IncidentTest {
                 .id(CommonKernel.IncidentId.generate())
                 .primaryAssetId(CommonKernel.AssetId.generate())
                 .correlationId(CommonKernel.CorrelationId.generate())
-                .severity(CommonKernel.ThreatSeverity.HIGH)
+                .severity(ThreatSeverity.HIGH)
                 .description("Test")
                 .detectedAt(Instant.now())
                 .build();
@@ -227,7 +229,7 @@ class IncidentTest {
                 .id(CommonKernel.IncidentId.generate())
                 .primaryAssetId(CommonKernel.AssetId.generate())
                 .correlationId(CommonKernel.CorrelationId.generate())
-                .severity(CommonKernel.ThreatSeverity.HIGH)
+                .severity(ThreatSeverity.HIGH)
                 .description("Test")
                 .detectedAt(Instant.now())
                 .build();
@@ -264,7 +266,7 @@ class IncidentTest {
                 .id(id)
                 .primaryAssetId(assetId)
                 .correlationId(correlationId)
-                .severity(CommonKernel.ThreatSeverity.HIGH)
+                .severity(ThreatSeverity.HIGH)
                 .description("Test")
                 .detectedAt(detectedAt)
                 .build();
@@ -273,7 +275,7 @@ class IncidentTest {
                 .id(id)
                 .primaryAssetId(assetId)
                 .correlationId(correlationId)
-                .severity(CommonKernel.ThreatSeverity.HIGH)
+                .severity(ThreatSeverity.HIGH)
                 .description("Test")
                 .detectedAt(detectedAt)
                 .build();
@@ -288,7 +290,7 @@ class IncidentTest {
                 .id(CommonKernel.IncidentId.generate())
                 .primaryAssetId(CommonKernel.AssetId.generate())
                 .correlationId(CommonKernel.CorrelationId.generate())
-                .severity(CommonKernel.ThreatSeverity.HIGH)
+                .severity(ThreatSeverity.HIGH)
                 .description("Test")
                 .detectedAt(Instant.now())
                 .build();
@@ -307,7 +309,7 @@ class IncidentTest {
                 .id(CommonKernel.IncidentId.generate())
                 .primaryAssetId(CommonKernel.AssetId.generate())
                 .correlationId(CommonKernel.CorrelationId.generate())
-                .severity(CommonKernel.ThreatSeverity.HIGH)
+                .severity(ThreatSeverity.HIGH)
                 .description("Test")
                 .detectedAt(Instant.now())
                 .build();
@@ -326,7 +328,7 @@ class IncidentTest {
                 .id(CommonKernel.IncidentId.generate())
                 .primaryAssetId(CommonKernel.AssetId.generate())
                 .correlationId(CommonKernel.CorrelationId.generate())
-                .severity(CommonKernel.ThreatSeverity.HIGH)
+                .severity(ThreatSeverity.HIGH)
                 .description("Test")
                 .detectedAt(Instant.now())
                 .build();
@@ -348,7 +350,7 @@ class IncidentTest {
                 .id(CommonKernel.IncidentId.generate())
                 .primaryAssetId(CommonKernel.AssetId.generate())
                 .correlationId(CommonKernel.CorrelationId.generate())
-                .severity(CommonKernel.ThreatSeverity.HIGH)
+                .severity(ThreatSeverity.HIGH)
                 .description("Test")
                 .detectedAt(Instant.now())
                 .build();

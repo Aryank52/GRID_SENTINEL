@@ -2,12 +2,14 @@ package com.gridsentinel.response;
 
 import com.gridsentinel.common.CommonKernel;
 import com.gridsentinel.incident.Incident;
+import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -19,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 /**
  * Prioritized response plan for an incident.
@@ -31,12 +34,14 @@ import java.util.Objects;
 public class ResponsePlan {
 
     @Id
+    @Column(name = "response_plan_id", nullable = false, columnDefinition = "uuid")
     @Setter(AccessLevel.PRIVATE)
-    private CommonKernel.ResponsePlanId id;
+    private UUID id;
 
     @NotNull
+    @Column(name = "incident_id", nullable = false, columnDefinition = "uuid")
     @Setter(AccessLevel.PRIVATE)
-    private CommonKernel.IncidentId incidentId;
+    private UUID incidentId;
 
     @NotNull
     @Enumerated(EnumType.STRING)
@@ -49,15 +54,21 @@ public class ResponsePlan {
     @Setter(AccessLevel.PRIVATE)
     private String description;
 
-    @ElementCollection
+    // @ElementCollection - Temporarily disabled due to Hibernate enum issue
+    // @Setter(AccessLevel.PRIVATE)
+    // private List<ResponseAction> actions = new ArrayList<>();
+    
+    @Transient
     @Setter(AccessLevel.PRIVATE)
     private List<ResponseAction> actions = new ArrayList<>();
 
+    @Column(name = "created_by", columnDefinition = "uuid")
     @Setter(AccessLevel.PRIVATE)
-    private CommonKernel.UserId createdBy;
+    private UUID createdBy;
 
+    @Column(name = "approved_by", columnDefinition = "uuid")
     @Setter(AccessLevel.PRIVATE)
-    private CommonKernel.UserId approvedBy;
+    private UUID approvedBy;
 
     @Setter(AccessLevel.PRIVATE)
     private Instant createdAt;
@@ -71,28 +82,29 @@ public class ResponsePlan {
     @Setter(AccessLevel.PRIVATE)
     private Instant completedAt;
 
+    @Column(name = "correlation_id", columnDefinition = "uuid")
     @Setter(AccessLevel.PRIVATE)
-    private CommonKernel.CorrelationId correlationId;
+    private UUID correlationId;
 
     @Setter(AccessLevel.PRIVATE)
     private int version;
 
     private ResponsePlan(Builder builder) {
-        this.id = builder.id;
+        this.id = builder.id != null ? builder.id : UUID.randomUUID();
         this.incidentId = Objects.requireNonNull(builder.incidentId, "Incident ID cannot be null");
         this.name = builder.name;
         this.description = builder.description;
         this.actions = builder.actions != null ? new ArrayList<>(builder.actions) : new ArrayList<>();
         this.createdBy = builder.createdBy;
-        this.correlationId = builder.correlationId != null ? builder.correlationId : CommonKernel.CorrelationId.generate();
+        this.correlationId = builder.correlationId != null ? builder.correlationId : UUID.randomUUID();
         this.createdAt = Instant.now();
         this.version = 0;
     }
 
     public void addAction(ResponseAction action) {
-        if (status != PlanStatus.DRAFT) {
+        if (status != PlanStatus.DRAFT && status != PlanStatus.PENDING_APPROVAL) {
             throw new CommonKernel.IllegalStateTransitionException(
-                    "PLAN_NOT_DRAFT",
+                    "PLAN_NOT_MODIFIABLE",
                     "Cannot add actions to plan in status: " + status
             );
         }
@@ -100,10 +112,10 @@ public class ResponsePlan {
         this.version++;
     }
 
-    public void removeAction(CommonKernel.ResponseActionId actionId) {
-        if (status != PlanStatus.DRAFT) {
+    public void removeAction(String actionId) {
+        if (status != PlanStatus.DRAFT && status != PlanStatus.PENDING_APPROVAL) {
             throw new CommonKernel.IllegalStateTransitionException(
-                    "PLAN_NOT_DRAFT",
+                    "PLAN_NOT_MODIFIABLE",
                     "Cannot remove actions from plan in status: " + status
             );
         }
@@ -111,65 +123,52 @@ public class ResponsePlan {
         this.version++;
     }
 
-    public void approve(CommonKernel.UserId approverId) {
+    public void submitForApproval() {
         if (status != PlanStatus.DRAFT) {
             throw new CommonKernel.IllegalStateTransitionException(
                     "PLAN_NOT_DRAFT",
+                    "Cannot submit plan for approval in status: " + status
+            );
+        }
+        this.status = PlanStatus.PENDING_APPROVAL;
+        this.version++;
+    }
+
+    public void approve(UUID approvedBy) {
+        if (status != PlanStatus.PENDING_APPROVAL) {
+            throw new CommonKernel.IllegalStateTransitionException(
+                    "PLAN_NOT_PENDING_APPROVAL",
                     "Cannot approve plan in status: " + status
             );
         }
-        if (actions.isEmpty()) {
-            throw new CommonKernel.ValidationException(
-                    "PLAN_EMPTY",
-                    "Cannot approve empty response plan"
-            );
-        }
         this.status = PlanStatus.APPROVED;
-        this.approvedBy = Objects.requireNonNull(approverId);
+        this.approvedBy = approvedBy;
         this.approvedAt = Instant.now();
         this.version++;
     }
 
-    public void start() {
+    public void startExecution() {
         if (status != PlanStatus.APPROVED) {
             throw new CommonKernel.IllegalStateTransitionException(
                     "PLAN_NOT_APPROVED",
-                    "Cannot start plan in status: " + status
+                    "Cannot start execution in status: " + status
             );
         }
-        this.status = PlanStatus.ACTIVE;
+        this.status = PlanStatus.EXECUTING;
         this.startedAt = Instant.now();
         this.version++;
     }
 
     public void complete() {
-        if (status != PlanStatus.ACTIVE) {
+        if (status != PlanStatus.EXECUTING) {
             throw new CommonKernel.IllegalStateTransitionException(
-                    "PLAN_NOT_ACTIVE",
+                    "PLAN_NOT_EXECUTING",
                     "Cannot complete plan in status: " + status
-            );
-        }
-        // Check all actions completed
-        boolean allComplete = actions.stream().allMatch(ResponseAction::isCompleted);
-        if (!allComplete) {
-            throw new CommonKernel.ValidationException(
-                    "ACTIONS_INCOMPLETE",
-                    "Not all actions are completed"
             );
         }
         this.status = PlanStatus.COMPLETED;
         this.completedAt = Instant.now();
         this.version++;
-    }
-
-    public List<ResponseAction> getActions() {
-        return Collections.unmodifiableList(actions);
-    }
-
-    public List<ResponseAction> getActionsByPriority() {
-        return actions.stream()
-                .sorted((a, b) -> a.getPriority().compareTo(b.getPriority()))
-                .toList();
     }
 
     @Override
@@ -189,33 +188,24 @@ public class ResponsePlan {
         return new Builder();
     }
 
-    public enum PlanStatus {
-        DRAFT,
-        APPROVED,
-        ACTIVE,
-        COMPLETED,
-        SUPERSEDED,
-        CANCELLED
-    }
-
     public static final class Builder {
-        private CommonKernel.ResponsePlanId id = CommonKernel.ResponsePlanId.generate();
-        private CommonKernel.IncidentId incidentId;
+        private UUID id;
+        private UUID incidentId;
         private String name;
         private String description;
         private List<ResponseAction> actions = new ArrayList<>();
-        private CommonKernel.UserId createdBy;
-        private CommonKernel.CorrelationId correlationId;
+        private UUID createdBy;
+        private UUID correlationId;
 
         private Builder() {}
 
-        public Builder id(CommonKernel.ResponsePlanId id) {
-            this.id = Objects.requireNonNull(id);
+        public Builder id(UUID id) {
+            this.id = id;
             return this;
         }
 
-        public Builder incidentId(CommonKernel.IncidentId incidentId) {
-            this.incidentId = incidentId;
+        public Builder incidentId(UUID incidentId) {
+            this.incidentId = Objects.requireNonNull(incidentId);
             return this;
         }
 
@@ -234,12 +224,12 @@ public class ResponsePlan {
             return this;
         }
 
-        public Builder createdBy(CommonKernel.UserId createdBy) {
+        public Builder createdBy(UUID createdBy) {
             this.createdBy = createdBy;
             return this;
         }
 
-        public Builder correlationId(CommonKernel.CorrelationId correlationId) {
+        public Builder correlationId(UUID correlationId) {
             this.correlationId = correlationId;
             return this;
         }

@@ -1,6 +1,10 @@
 package com.gridsentinel.observation;
 
 import com.gridsentinel.common.CommonKernel;
+import com.gridsentinel.common.ObservationSourceType;
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.AttributeOverrides;
+import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -37,13 +41,16 @@ import java.util.UUID;
 public class Observation {
 
     @Id
+    @AttributeOverrides({
+        @AttributeOverride(name = "value", column = @Column(name = "observation_id", nullable = false, columnDefinition = "uuid"))
+    })
     @Setter(AccessLevel.PRIVATE)
     private CommonKernel.ObservationId id;
 
     @NotNull
     @Enumerated(EnumType.STRING)
     @Setter(AccessLevel.PRIVATE)
-    private CommonKernel.ObservationSourceType sourceType;
+    private ObservationSourceType sourceType;
 
     @NotNull
     @Size(max = 255)
@@ -64,16 +71,28 @@ public class Observation {
     @Setter(AccessLevel.PRIVATE)
     private String contentHash; // SHA-256 of payload for integrity
 
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "value", column = @Column(name = "associated_asset_id", columnDefinition = "uuid"))
+    })
     @Setter(AccessLevel.PRIVATE)
     private CommonKernel.AssetId associatedAssetId; // Asset directly observed
 
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "value", column = @Column(name = "nearby_grid_node_id", columnDefinition = "uuid"))
+    })
     @Setter(AccessLevel.PRIVATE)
     private CommonKernel.GridNodeId nearbyGridNodeId; // Nearest grid node
 
     @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "value", column = @Column(name = "geometry_value", columnDefinition = "geometry"))
+    })
     @Setter(AccessLevel.PRIVATE)
     private CommonKernel.GeometryValueObject geometry; // Location of observation
 
+    @Enumerated(EnumType.STRING)
     @Setter(AccessLevel.PRIVATE)
     private ValidationStatus validationStatus = ValidationStatus.PENDING;
 
@@ -83,6 +102,10 @@ public class Observation {
     @Setter(AccessLevel.PRIVATE)
     private Instant validatedAt;
 
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "value", column = @Column(name = "validated_by", columnDefinition = "uuid"))
+    })
     @Setter(AccessLevel.PRIVATE)
     private CommonKernel.UserId validatedBy;
 
@@ -164,16 +187,9 @@ public class Observation {
         return new Builder();
     }
 
-    public enum ValidationStatus {
-        PENDING,
-        VALID,
-        REJECTED,
-        REQUIRES_REVIEW
-    }
-
     public static final class Builder {
         private CommonKernel.ObservationId id = CommonKernel.ObservationId.generate();
-        private CommonKernel.ObservationSourceType sourceType;
+        private ObservationSourceType sourceType;
         private String sourceIdentifier;
         private Instant timestamp;
         private Instant receivedAt;
@@ -190,7 +206,7 @@ public class Observation {
             return this;
         }
 
-        public Builder sourceType(CommonKernel.ObservationSourceType sourceType) {
+        public Builder sourceType(ObservationSourceType sourceType) {
             this.sourceType = sourceType;
             return this;
         }

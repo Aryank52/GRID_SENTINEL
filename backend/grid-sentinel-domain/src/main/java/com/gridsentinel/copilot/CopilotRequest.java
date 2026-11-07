@@ -94,16 +94,6 @@ public class CopilotRequest {
         return new Builder();
     }
 
-    public enum RequestType {
-        SUMMARIZE_INCIDENT,
-        EXPLAIN_RISK,
-        EXPLAIN_SIMULATION,
-        DRAFT_INCIDENT_REPORT,
-        ANSWER_QUESTION,
-        SUGGEST_ACTIONS,
-        COMPARE_SCENARIOS
-    }
-
     public static final class Builder {
         private RequestType type;
         private String prompt;
@@ -114,12 +104,12 @@ public class CopilotRequest {
         private Builder() {}
 
         public Builder type(RequestType type) {
-            this.type = type;
+            this.type = Objects.requireNonNull(type);
             return this;
         }
 
         public Builder prompt(String prompt) {
-            this.prompt = prompt;
+            this.prompt = Objects.requireNonNull(prompt);
             return this;
         }
 

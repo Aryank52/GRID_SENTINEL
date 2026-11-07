@@ -1,7 +1,10 @@
 package com.gridsentinel.copilot;
 
 import com.gridsentinel.common.CommonKernel;
-import jakarta.persistence.Embeddable;
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.AttributeOverrides;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
@@ -53,6 +56,10 @@ public class CopilotResponse {
     @Setter(AccessLevel.PRIVATE)
     private Boolean requiresReview; // Flag for human review
 
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "value", column = @Column(name = "correlation_id", columnDefinition = "uuid"))
+    })
     @Setter(AccessLevel.PRIVATE)
     private CommonKernel.CorrelationId correlationId;
 
@@ -107,7 +114,7 @@ public class CopilotResponse {
         }
 
         public Builder content(String content) {
-            this.content = content;
+            this.content = Objects.requireNonNull(content);
             return this;
         }
 
@@ -121,7 +128,7 @@ public class CopilotResponse {
             return this;
         }
 
-        public Builder confidence(double confidence) {
+        public Builder confidence(Double confidence) {
             this.confidence = confidence;
             return this;
         }
@@ -131,7 +138,7 @@ public class CopilotResponse {
             return this;
         }
 
-        public Builder requiresReview(boolean requiresReview) {
+        public Builder requiresReview(Boolean requiresReview) {
             this.requiresReview = requiresReview;
             return this;
         }

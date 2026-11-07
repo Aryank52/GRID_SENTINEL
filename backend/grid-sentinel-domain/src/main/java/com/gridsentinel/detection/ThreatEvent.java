@@ -1,9 +1,11 @@
 package com.gridsentinel.detection;
 
 import com.gridsentinel.common.CommonKernel;
+import com.gridsentinel.common.ThreatSeverity;
 import com.gridsentinel.observation.Evidence;
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.AttributeOverrides;
+import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Embedded;
@@ -11,6 +13,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotNull;
@@ -54,7 +57,7 @@ public class ThreatEvent {
     @NotNull
     @Enumerated(EnumType.STRING)
     @Setter(AccessLevel.PRIVATE)
-    private CommonKernel.ThreatSeverity severity;
+    private ThreatSeverity severity;
 
     @NotNull
     @Setter(AccessLevel.PRIVATE)
@@ -67,9 +70,17 @@ public class ThreatEvent {
     @Setter(AccessLevel.PRIVATE)
     private Instant firstObservedAt;
 
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "value", column = @Column(name = "affected_asset_id", columnDefinition = "uuid"))
+    })
     @Setter(AccessLevel.PRIVATE)
     private CommonKernel.AssetId affectedAssetId;
 
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "value", column = @Column(name = "nearby_grid_node_id", columnDefinition = "uuid"))
+    })
     @Setter(AccessLevel.PRIVATE)
     private CommonKernel.GridNodeId nearbyGridNodeId;
 
@@ -83,10 +94,16 @@ public class ThreatEvent {
     @Setter(AccessLevel.PRIVATE)
     private String rationale; // Why the system thinks it matters
 
-    @ElementCollection
-    @AttributeOverrides({
-        @AttributeOverride(name = "value", column = @Column(name = "evidence_value"))
-    })
+    // @ElementCollection - Disabled due to Hibernate enum issue with inner enum
+    // @CollectionTable(name = "threat_event_evidence", joinColumns = @JoinColumn(name = "threat_event_id"))
+    // @AttributeOverrides({
+    //     @AttributeOverride(name = "type", column = @Column(name = "evidence_type")),
+    //     @AttributeOverride(name = "value", column = @Column(name = "evidence_value"))
+    // })
+    // @Setter(AccessLevel.PRIVATE)
+    // private Set<Evidence> supportingEvidence = new HashSet<>();
+    
+    @Transient
     @Setter(AccessLevel.PRIVATE)
     private Set<Evidence> supportingEvidence = new HashSet<>();
 
@@ -96,6 +113,8 @@ public class ThreatEvent {
     @Setter(AccessLevel.PRIVATE)
     private String strategyVersion;
 
+    @NotNull
+    @Enumerated(EnumType.STRING)
     @Setter(AccessLevel.PRIVATE)
     private ThreatStatus status = ThreatStatus.NEW;
 
@@ -143,7 +162,7 @@ public class ThreatEvent {
         this.version++;
     }
 
-    public void escalateSeverity(CommonKernel.ThreatSeverity newSeverity) {
+    public void escalateSeverity(ThreatSeverity newSeverity) {
         if (newSeverity.ordinal() > this.severity.ordinal()) {
             this.severity = newSeverity;
             this.version++;
@@ -151,7 +170,7 @@ public class ThreatEvent {
     }
 
     public boolean isActionable() {
-        return confidence >= 0.7 && severity.ordinal() >= CommonKernel.ThreatSeverity.MEDIUM.ordinal();
+        return confidence >= 0.7 && severity.ordinal() >= ThreatSeverity.MEDIUM.ordinal();
     }
 
     public Set<Evidence> getSupportingEvidence() {
@@ -175,59 +194,10 @@ public class ThreatEvent {
         return new Builder();
     }
 
-    public enum ThreatType {
-        // Physical threats
-        FIRE,
-        EXPLOSION,
-        STRUCTURAL_FAILURE,
-        VEGETATION_CONTACT,
-        ICE_ACCRETION,
-        LANDSLIDE,
-        FLOODING,
-        SEISMIC_EVENT,
-        VANDALISM,
-        THEFT,
-        UNAUTHORIZED_ACCESS,
-        DRONE_INTRUSION,
-        PROJECTILE_IMPACT,
-
-        // Equipment threats
-        OVERHEATING,
-        INSULATION_FAILURE,
-        CONDUCTOR_SAG,
-        CORROSION,
-        MECHANICAL_DAMAGE,
-        PROTECTION_MALFUNCTION,
-        COMMUNICATION_FAILURE,
-        CYBER_PHYSICAL_ATTACK,
-
-        // Environmental
-        EXTREME_WIND,
-        LIGHTNING_STRIKE,
-        EXTREME_TEMPERATURE,
-        HEAVY_PRECIPITATION,
-
-        // Operational
-        OVERLOAD,
-        VOLTAGE_COLLAPSE,
-        FREQUENCY_INSTABILITY,
-        CASCADING_FAILURE_RISK
-    }
-
-    public enum ThreatStatus {
-        NEW,
-        TRIAGED,
-        CONFIRMED,
-        ESCALATED_TO_INCIDENT,
-        FALSE_POSITIVE,
-        RESOLVED,
-        SUPPRESSED
-    }
-
     public static final class Builder {
         private CommonKernel.ThreatEventId id = CommonKernel.ThreatEventId.generate();
         private ThreatType type;
-        private CommonKernel.ThreatSeverity severity;
+        private ThreatSeverity severity;
         private Double confidence;
         private Instant detectedAt;
         private Instant firstObservedAt;
@@ -253,7 +223,7 @@ public class ThreatEvent {
             return this;
         }
 
-        public Builder severity(CommonKernel.ThreatSeverity severity) {
+        public Builder severity(ThreatSeverity severity) {
             this.severity = severity;
             return this;
         }

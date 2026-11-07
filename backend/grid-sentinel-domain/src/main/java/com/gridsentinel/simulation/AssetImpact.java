@@ -1,6 +1,8 @@
 package com.gridsentinel.simulation;
 
 import jakarta.persistence.Embeddable;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -22,6 +24,7 @@ import java.util.Objects;
 public final class AssetImpact {
 
     @NotNull
+    @Enumerated(EnumType.STRING)
     @Setter(AccessLevel.PRIVATE)
     private ImpactType type;
 
@@ -55,20 +58,6 @@ public final class AssetImpact {
         this.iterationFailed = builder.iterationFailed;
         this.failureCause = builder.failureCause;
         this.recoverable = builder.recoverable != null ? builder.recoverable : true;
-    }
-
-    public enum ImpactType {
-        NONE,
-        OVERLOADED,
-        UNDERVOLTAGE,
-        OVERVOLTAGE,
-        FREQUENCY_DEVIATION,
-        ISLANDED,
-        DEENERGIZED,
-        CASCADING_FAILURE,
-        PROTECTION_OPERATION,
-        COMMUNICATION_LOSS,
-        PHYSICAL_DAMAGE
     }
 
     public static Builder builder() {

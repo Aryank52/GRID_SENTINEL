@@ -1,6 +1,9 @@
 package com.gridsentinel.recovery;
 
 import com.gridsentinel.common.CommonKernel;
+import com.gridsentinel.recovery.MilestoneType;
+import com.gridsentinel.recovery.RecoveryPhase;
+import com.gridsentinel.recovery.RecoveryStatus;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -25,7 +28,7 @@ class RecoveryStateTest {
 
         assertThat(state.getId()).isEqualTo(id);
         assertThat(state.getIncidentId()).isEqualTo(incidentId);
-        assertThat(state.getPhase()).isEqualTo(RecoveryState.RecoveryPhase.NOT_STARTED);
+        assertThat(state.getPhase()).isEqualTo(RecoveryPhase.NOT_STARTED);
         assertThat(state.getOverallProgress()).isEqualTo(0.0);
         assertThat(state.getMilestones()).isEmpty();
         assertThat(state.getEstimatedCompletionAt()).isNotNull();
@@ -52,7 +55,7 @@ class RecoveryStateTest {
                 .id("MS-001")
                 .name("Damage assessment")
                 .description("Assess damage to transformer")
-                .type(RecoveryMilestone.MilestoneType.DAMAGE_ASSESSMENT)
+                .type(MilestoneType.DAMAGE_ASSESSMENT)
                 .build();
 
         int oldVersion = state.getVersion();
@@ -74,7 +77,7 @@ class RecoveryStateTest {
 
         state.start(managerId);
 
-        assertThat(state.getPhase()).isEqualTo(RecoveryState.RecoveryPhase.IN_PROGRESS);
+        assertThat(state.getPhase()).isEqualTo(RecoveryPhase.IN_PROGRESS);
         assertThat(state.getRecoveryManagerId()).isEqualTo(managerId);
         assertThat(state.getStartedAt()).isNotNull();
         assertThat(state.getVersion()).isEqualTo(oldVersion + 1);
@@ -106,7 +109,7 @@ class RecoveryStateTest {
                 .id("MS-001")
                 .name("Damage assessment")
                 .description("Assess damage to transformer")
-                .type(RecoveryMilestone.MilestoneType.DAMAGE_ASSESSMENT)
+                .type(MilestoneType.DAMAGE_ASSESSMENT)
                 .build();
 
         state.addMilestone(milestone);
@@ -118,7 +121,7 @@ class RecoveryStateTest {
         state.completeMilestone("MS-001", verifiedBy, "Assessment complete");
 
         assertThat(state.getOverallProgress()).isEqualTo(1.0);
-        assertThat(state.getPhase()).isEqualTo(RecoveryState.RecoveryPhase.COMPLETED);
+        assertThat(state.getPhase()).isEqualTo(RecoveryPhase.COMPLETED);
         assertThat(state.getActualCompletionAt()).isNotNull();
     }
 
@@ -174,14 +177,14 @@ class RecoveryStateTest {
                 .id("MS-001")
                 .name("Damage assessment")
                 .description("Assess damage")
-                .type(RecoveryMilestone.MilestoneType.DAMAGE_ASSESSMENT)
+                .type(MilestoneType.DAMAGE_ASSESSMENT)
                 .build();
 
         RecoveryMilestone milestone2 = RecoveryMilestone.builder()
                 .id("MS-002")
                 .name("Equipment replacement")
                 .description("Replace transformer")
-                .type(RecoveryMilestone.MilestoneType.EQUIPMENT_REPLACEMENT)
+                .type(MilestoneType.EQUIPMENT_REPLACEMENT)
                 .build();
 
         state.addMilestone(milestone1);
@@ -193,7 +196,7 @@ class RecoveryStateTest {
 
     @Test
     void recoveryStateAllPhases() {
-        for (RecoveryState.RecoveryPhase phase : RecoveryState.RecoveryPhase.values()) {
+        for (RecoveryPhase phase : RecoveryPhase.values()) {
             assertThat(phase).isNotNull();
         }
     }

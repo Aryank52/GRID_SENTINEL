@@ -3,6 +3,7 @@ package com.gridsentinel.infrastructure.api.spatial;
 import com.gridsentinel.asset.Asset;
 import com.gridsentinel.asset.AssetType;
 import com.gridsentinel.common.CommonKernel;
+import com.gridsentinel.common.RiskBand;
 import com.gridsentinel.detection.ThreatEvent;
 import com.gridsentinel.grid.GridEdge;
 import com.gridsentinel.grid.GridNode;
@@ -228,7 +229,7 @@ public class SpatialQueryService {
 
         // Get latest risk score
         Optional<RiskScore> riskScore = riskScoreRepository.findTopByAssetIdOrderByComputedAtDesc(asset.getId());
-        CommonKernel.RiskBand riskBand = riskScore.map(RiskScore::getBand).orElse(null);
+        RiskBand riskBand = riskScore.map(RiskScore::getBand).orElse(null);
         Double riskScoreValue = riskScore.map(RiskScore::getScore).orElse(null);
 
         AssetProperties props = AssetProperties.builder()

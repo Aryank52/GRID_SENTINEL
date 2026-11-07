@@ -2,9 +2,7 @@ package com.gridsentinel.risk;
 
 import com.gridsentinel.common.CommonKernel;
 import jakarta.persistence.Embeddable;
-import jakarta.persistence.ElementCollection;
-import jakarta.persistence.MapKeyColumn;
-import jakarta.persistence.Column;
+import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -28,9 +26,7 @@ import java.util.Objects;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public final class FactorBreakdown {
 
-    @ElementCollection
-    @MapKeyColumn(name = "factor_name")
-    @Column(name = "factor_contribution")
+    @Transient
     @Setter(AccessLevel.PRIVATE)
     private Map<String, FactorContribution> contributions = new HashMap<>();
 

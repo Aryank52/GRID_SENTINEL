@@ -1,6 +1,7 @@
 package com.gridsentinel.detection;
 
 import com.gridsentinel.common.CommonKernel;
+import com.gridsentinel.common.ThreatSeverity;
 import com.gridsentinel.test.TestGeometryFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -20,8 +21,8 @@ class ThreatEventTest {
         ThreatEvent event = ThreatEvent.builder()
                 .id(id)
                 .affectedAssetId(assetId)
-                .type(ThreatEvent.ThreatType.FIRE)
-                .severity(CommonKernel.ThreatSeverity.HIGH)
+                .type(ThreatType.FIRE)
+                .severity(ThreatSeverity.HIGH)
                 .confidence(0.88)
                 .detectedAt(Instant.now())
                 .location(TestGeometryFactory.point(0, 0))
@@ -30,8 +31,8 @@ class ThreatEventTest {
 
         assertThat(event.getId()).isEqualTo(id);
         assertThat(event.getAffectedAssetId()).isEqualTo(assetId);
-        assertThat(event.getType()).isEqualTo(ThreatEvent.ThreatType.FIRE);
-        assertThat(event.getSeverity()).isEqualTo(CommonKernel.ThreatSeverity.HIGH);
+        assertThat(event.getType()).isEqualTo(ThreatType.FIRE);
+        assertThat(event.getSeverity()).isEqualTo(ThreatSeverity.HIGH);
         assertThat(event.getConfidence()).isEqualTo(0.88);
         assertThat(event.getDetectedAt()).isNotNull();
         assertThat(event.getLocation()).isNotNull();
@@ -47,8 +48,8 @@ class ThreatEventTest {
         ThreatEvent event = ThreatEvent.builder()
                 .id(id)
                 .affectedAssetId(assetId)
-                .type(ThreatEvent.ThreatType.FIRE)
-                .severity(CommonKernel.ThreatSeverity.HIGH)
+                .type(ThreatType.FIRE)
+                .severity(ThreatSeverity.HIGH)
                 .confidence(0.88)
                 .detectedAt(Instant.now())
                 .description("Fire detected by satellite")
@@ -62,8 +63,8 @@ class ThreatEventTest {
         // affectedAssetId is nullable in the builder
         ThreatEvent event = ThreatEvent.builder()
                 .id(CommonKernel.ThreatEventId.generate())
-                .type(ThreatEvent.ThreatType.FIRE)
-                .severity(CommonKernel.ThreatSeverity.HIGH)
+                .type(ThreatType.FIRE)
+                .severity(ThreatSeverity.HIGH)
                 .confidence(0.9)
                 .detectedAt(Instant.now())
                 .description("Test")
@@ -78,7 +79,7 @@ class ThreatEventTest {
                 .id(CommonKernel.ThreatEventId.generate())
                 .affectedAssetId(CommonKernel.AssetId.generate())
                 .type(null)
-                .severity(CommonKernel.ThreatSeverity.HIGH)
+                .severity(ThreatSeverity.HIGH)
                 .confidence(0.9)
                 .detectedAt(Instant.now())
                 .description("Test")
@@ -91,7 +92,7 @@ class ThreatEventTest {
         assertThatThrownBy(() -> ThreatEvent.builder()
                 .id(CommonKernel.ThreatEventId.generate())
                 .affectedAssetId(CommonKernel.AssetId.generate())
-                .type(ThreatEvent.ThreatType.FIRE)
+                .type(ThreatType.FIRE)
                 .severity(null)
                 .confidence(0.9)
                 .detectedAt(Instant.now())
@@ -106,8 +107,8 @@ class ThreatEventTest {
         assertThatThrownBy(() -> ThreatEvent.builder()
                 .id(CommonKernel.ThreatEventId.generate())
                 .affectedAssetId(CommonKernel.AssetId.generate())
-                .type(ThreatEvent.ThreatType.FIRE)
-                .severity(CommonKernel.ThreatSeverity.HIGH)
+                .type(ThreatType.FIRE)
+                .severity(ThreatSeverity.HIGH)
                 .confidence(confidence)
                 .detectedAt(Instant.now())
                 .description("Test")
@@ -120,8 +121,8 @@ class ThreatEventTest {
         assertThatThrownBy(() -> ThreatEvent.builder()
                 .id(CommonKernel.ThreatEventId.generate())
                 .affectedAssetId(CommonKernel.AssetId.generate())
-                .type(ThreatEvent.ThreatType.FIRE)
-                .severity(CommonKernel.ThreatSeverity.HIGH)
+                .type(ThreatType.FIRE)
+                .severity(ThreatSeverity.HIGH)
                 .confidence(0.9)
                 .detectedAt(Instant.now())
                 .description(null)
@@ -131,12 +132,12 @@ class ThreatEventTest {
 
     @Test
     void threatEventAllTypes() {
-        for (ThreatEvent.ThreatType type : ThreatEvent.ThreatType.values()) {
+        for (ThreatType type : ThreatType.values()) {
             ThreatEvent event = ThreatEvent.builder()
                     .id(CommonKernel.ThreatEventId.generate())
                     .affectedAssetId(CommonKernel.AssetId.generate())
                     .type(type)
-                    .severity(CommonKernel.ThreatSeverity.MEDIUM)
+                    .severity(ThreatSeverity.MEDIUM)
                     .confidence(0.9)
                     .detectedAt(Instant.now())
                     .description("Test")
@@ -148,11 +149,11 @@ class ThreatEventTest {
 
     @Test
     void threatEventAllSeverities() {
-        for (CommonKernel.ThreatSeverity severity : CommonKernel.ThreatSeverity.values()) {
+        for (ThreatSeverity severity : ThreatSeverity.values()) {
             ThreatEvent event = ThreatEvent.builder()
                     .id(CommonKernel.ThreatEventId.generate())
                     .affectedAssetId(CommonKernel.AssetId.generate())
-                    .type(ThreatEvent.ThreatType.FIRE)
+                    .type(ThreatType.FIRE)
                     .severity(severity)
                     .confidence(0.9)
                     .detectedAt(Instant.now())
@@ -172,8 +173,8 @@ class ThreatEventTest {
         ThreatEvent event1 = ThreatEvent.builder()
                 .id(id)
                 .affectedAssetId(assetId)
-                .type(ThreatEvent.ThreatType.FIRE)
-                .severity(CommonKernel.ThreatSeverity.HIGH)
+                .type(ThreatType.FIRE)
+                .severity(ThreatSeverity.HIGH)
                 .confidence(0.88)
                 .detectedAt(detectedAt)
                 .description("Test")
@@ -182,8 +183,8 @@ class ThreatEventTest {
         ThreatEvent event2 = ThreatEvent.builder()
                 .id(id)
                 .affectedAssetId(assetId)
-                .type(ThreatEvent.ThreatType.FIRE)
-                .severity(CommonKernel.ThreatSeverity.HIGH)
+                .type(ThreatType.FIRE)
+                .severity(ThreatSeverity.HIGH)
                 .confidence(0.88)
                 .detectedAt(detectedAt)
                 .description("Test")
@@ -198,8 +199,8 @@ class ThreatEventTest {
         ThreatEvent actionable = ThreatEvent.builder()
                 .id(CommonKernel.ThreatEventId.generate())
                 .affectedAssetId(CommonKernel.AssetId.generate())
-                .type(ThreatEvent.ThreatType.FIRE)
-                .severity(CommonKernel.ThreatSeverity.HIGH)
+                .type(ThreatType.FIRE)
+                .severity(ThreatSeverity.HIGH)
                 .confidence(0.8)
                 .detectedAt(Instant.now())
                 .description("Test")
@@ -208,8 +209,8 @@ class ThreatEventTest {
         ThreatEvent notActionableLowConfidence = ThreatEvent.builder()
                 .id(CommonKernel.ThreatEventId.generate())
                 .affectedAssetId(CommonKernel.AssetId.generate())
-                .type(ThreatEvent.ThreatType.FIRE)
-                .severity(CommonKernel.ThreatSeverity.HIGH)
+                .type(ThreatType.FIRE)
+                .severity(ThreatSeverity.HIGH)
                 .confidence(0.5)
                 .detectedAt(Instant.now())
                 .description("Test")
@@ -218,8 +219,8 @@ class ThreatEventTest {
         ThreatEvent notActionableLowSeverity = ThreatEvent.builder()
                 .id(CommonKernel.ThreatEventId.generate())
                 .affectedAssetId(CommonKernel.AssetId.generate())
-                .type(ThreatEvent.ThreatType.FIRE)
-                .severity(CommonKernel.ThreatSeverity.LOW)
+                .type(ThreatType.FIRE)
+                .severity(ThreatSeverity.LOW)
                 .confidence(0.9)
                 .detectedAt(Instant.now())
                 .description("Test")
@@ -235,19 +236,19 @@ class ThreatEventTest {
         ThreatEvent event = ThreatEvent.builder()
                 .id(CommonKernel.ThreatEventId.generate())
                 .affectedAssetId(CommonKernel.AssetId.generate())
-                .type(ThreatEvent.ThreatType.FIRE)
-                .severity(CommonKernel.ThreatSeverity.MEDIUM)
+                .type(ThreatType.FIRE)
+                .severity(ThreatSeverity.MEDIUM)
                 .confidence(0.8)
                 .detectedAt(Instant.now())
                 .description("Test")
                 .build();
 
-        event.escalateSeverity(CommonKernel.ThreatSeverity.HIGH);
-        assertThat(event.getSeverity()).isEqualTo(CommonKernel.ThreatSeverity.HIGH);
+        event.escalateSeverity(ThreatSeverity.HIGH);
+        assertThat(event.getSeverity()).isEqualTo(ThreatSeverity.HIGH);
         assertThat(event.getVersion()).isEqualTo(1);
 
         // Cannot de-escalate
-        event.escalateSeverity(CommonKernel.ThreatSeverity.LOW);
-        assertThat(event.getSeverity()).isEqualTo(CommonKernel.ThreatSeverity.HIGH);
+        event.escalateSeverity(ThreatSeverity.LOW);
+        assertThat(event.getSeverity()).isEqualTo(ThreatSeverity.HIGH);
     }
 }

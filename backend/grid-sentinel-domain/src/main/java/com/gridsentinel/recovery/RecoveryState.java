@@ -1,12 +1,19 @@
 package com.gridsentinel.recovery;
 
 import com.gridsentinel.common.CommonKernel;
+import com.gridsentinel.recovery.RecoveryPhase;
+import com.gridsentinel.recovery.RecoveryStatus;
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.AttributeOverrides;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -30,10 +37,17 @@ import java.util.Objects;
 public class RecoveryState {
 
     @Id
+    @AttributeOverrides({
+        @AttributeOverride(name = "value", column = @Column(name = "recovery_state_id", nullable = false, columnDefinition = "uuid"))
+    })
     @Setter(AccessLevel.PRIVATE)
     private CommonKernel.RecoveryStateId id;
 
     @NotNull
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "value", column = @Column(name = "incident_id", nullable = false, columnDefinition = "uuid"))
+    })
     @Setter(AccessLevel.PRIVATE)
     private CommonKernel.IncidentId incidentId;
 
@@ -45,10 +59,18 @@ public class RecoveryState {
     @Setter(AccessLevel.PRIVATE)
     private Double overallProgress = 0.0; // [0.0, 1.0]
 
-    @ElementCollection
+    // @ElementCollection - Temporarily disabled due to Hibernate enum issue
+    // @Setter(AccessLevel.PRIVATE)
+    // private List<RecoveryMilestone> milestones = new ArrayList<>();
+    
+    @Transient
     @Setter(AccessLevel.PRIVATE)
     private List<RecoveryMilestone> milestones = new ArrayList<>();
 
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "value", column = @Column(name = "recovery_manager_id", columnDefinition = "uuid"))
+    })
     @Setter(AccessLevel.PRIVATE)
     private CommonKernel.UserId recoveryManagerId;
 
@@ -67,6 +89,10 @@ public class RecoveryState {
     @Setter(AccessLevel.PRIVATE)
     private String afterActionReport;
 
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "value", column = @Column(name = "correlation_id", columnDefinition = "uuid"))
+    })
     @Setter(AccessLevel.PRIVATE)
     private CommonKernel.CorrelationId correlationId;
 
@@ -164,7 +190,7 @@ public class RecoveryState {
 
     public List<RecoveryMilestone> getBlockedMilestones() {
         return milestones.stream()
-                .filter(m -> m.getStatus() == CommonKernel.RecoveryStatus.BLOCKED)
+                .filter(m -> m.getStatus() == RecoveryStatus.BLOCKED)
                 .toList();
     }
 
@@ -183,14 +209,6 @@ public class RecoveryState {
 
     public static Builder builder() {
         return new Builder();
-    }
-
-    public enum RecoveryPhase {
-        NOT_STARTED,
-        IN_PROGRESS,
-        COMPLETED,
-        ON_HOLD,
-        CANCELLED
     }
 
     public static final class Builder {

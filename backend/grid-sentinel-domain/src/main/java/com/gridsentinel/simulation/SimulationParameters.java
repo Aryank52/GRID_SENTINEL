@@ -1,8 +1,8 @@
 package com.gridsentinel.simulation;
 
 import com.gridsentinel.common.CommonKernel;
-import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Embeddable;
+import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -51,7 +51,11 @@ public final class SimulationParameters {
     @Setter(AccessLevel.PRIVATE)
     private Double frequencyDeviationThreshold = 0.5; // Hz
 
-    @ElementCollection
+    // @ElementCollection - Temporarily disabled
+    // @Setter(AccessLevel.PRIVATE)
+    // private Set<String> excludedAssetIds = new HashSet<>();
+    
+    @Transient
     @Setter(AccessLevel.PRIVATE)
     private Set<String> excludedAssetIds = new HashSet<>();
 

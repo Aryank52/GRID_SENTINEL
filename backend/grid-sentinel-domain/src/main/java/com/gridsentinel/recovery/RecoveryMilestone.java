@@ -45,7 +45,7 @@ public final class RecoveryMilestone {
     @NotNull
     @Enumerated(EnumType.STRING)
     @Setter(AccessLevel.PRIVATE)
-    private CommonKernel.RecoveryStatus status = CommonKernel.RecoveryStatus.NOT_STARTED;
+    private RecoveryStatus status = RecoveryStatus.NOT_STARTED;
 
     @Setter(AccessLevel.PRIVATE)
     private Integer sequenceOrder;
@@ -93,79 +93,64 @@ public final class RecoveryMilestone {
     }
 
     public void start(CommonKernel.UserId userId) {
-        if (status != CommonKernel.RecoveryStatus.NOT_STARTED) {
+        if (status != RecoveryStatus.NOT_STARTED) {
             throw new CommonKernel.IllegalStateTransitionException(
                     "MILESTONE_ALREADY_STARTED",
                     "Milestone already in status: " + status
             );
         }
-        this.status = CommonKernel.RecoveryStatus.IN_PROGRESS;
+        this.status = RecoveryStatus.IN_PROGRESS;
         this.startedAt = Instant.now();
         this.assignedTo = userId;
     }
 
     public void complete(CommonKernel.UserId verifiedBy, String verificationNotes) {
-        if (status != CommonKernel.RecoveryStatus.IN_PROGRESS) {
+        if (status != RecoveryStatus.IN_PROGRESS) {
             throw new CommonKernel.IllegalStateTransitionException(
                     "MILESTONE_NOT_IN_PROGRESS",
                     "Cannot complete milestone in status: " + status
             );
         }
-        this.status = CommonKernel.RecoveryStatus.COMPLETED;
+        this.status = RecoveryStatus.COMPLETED;
         this.completedAt = Instant.now();
         this.verifiedBy = verifiedBy;
         this.verificationNotes = verificationNotes;
     }
 
     public void verify(CommonKernel.UserId verifiedBy, String verificationNotes) {
-        if (status != CommonKernel.RecoveryStatus.COMPLETED) {
+        if (status != RecoveryStatus.COMPLETED) {
             throw new CommonKernel.IllegalStateTransitionException(
                     "MILESTONE_NOT_COMPLETED",
                     "Cannot verify milestone in status: " + status
             );
         }
-        this.status = CommonKernel.RecoveryStatus.VERIFIED;
+        this.status = RecoveryStatus.VERIFIED;
         this.verifiedAt = Instant.now();
         this.verifiedBy = verifiedBy;
         this.verificationNotes = verificationNotes;
     }
 
     public void block(String reason) {
-        if (status == CommonKernel.RecoveryStatus.COMPLETED || status == CommonKernel.RecoveryStatus.VERIFIED) {
+        if (status == RecoveryStatus.COMPLETED || status == RecoveryStatus.VERIFIED) {
             throw new CommonKernel.IllegalStateTransitionException(
                     "MILESTONE_ALREADY_COMPLETED",
                     "Cannot block completed milestone"
             );
         }
-        this.status = CommonKernel.RecoveryStatus.BLOCKED;
+        this.status = RecoveryStatus.BLOCKED;
         this.verificationNotes = "BLOCKED: " + reason;
     }
 
     public boolean isCompleted() {
-        return status == CommonKernel.RecoveryStatus.COMPLETED || status == CommonKernel.RecoveryStatus.VERIFIED;
+        return status == RecoveryStatus.COMPLETED || status == RecoveryStatus.VERIFIED;
     }
 
     public boolean isVerified() {
-        return status == CommonKernel.RecoveryStatus.VERIFIED;
+        return status == RecoveryStatus.VERIFIED;
     }
 
     public static Builder builder() {
         return new Builder();
-    }
-
-    public enum MilestoneType {
-        DAMAGE_ASSESSMENT,
-        SITE_SECURITY,
-        TEMPORARY_RESTORATION,
-        PERMANENT_REPAIR,
-        EQUIPMENT_REPLACEMENT,
-        TESTING_COMMISSIONING,
-        LOAD_RESTORATION,
-        CUSTOMER_NOTIFICATION,
-        ENVIRONMENTAL_CLEANUP,
-        DOCUMENTATION,
-        AFTER_ACTION_REVIEW,
-        LESSONS_LEARNED_CAPTURE
     }
 
     public static final class Builder {

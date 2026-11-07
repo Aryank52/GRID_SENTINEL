@@ -1,6 +1,7 @@
 package com.gridsentinel.grid;
 
 import com.gridsentinel.common.CommonKernel;
+import com.gridsentinel.grid.EdgeType;
 import com.gridsentinel.test.TestGeometryFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -23,7 +24,7 @@ class GridEdgeTest {
         GridEdge edge = GridEdge.builder()
                 .id(id)
                 .name("Test Line")
-                .type(GridEdge.EdgeType.TRANSMISSION_LINE)
+                .type(EdgeType.TRANSMISSION_LINE)
                 .fromNodeId(sourceId)
                 .toNodeId(targetId)
                 .geometry(geometry)
@@ -34,7 +35,7 @@ class GridEdgeTest {
 
         assertThat(edge.getId()).isEqualTo(id);
         assertThat(edge.getName()).isEqualTo("Test Line");
-        assertThat(edge.getType()).isEqualTo(GridEdge.EdgeType.TRANSMISSION_LINE);
+        assertThat(edge.getType()).isEqualTo(EdgeType.TRANSMISSION_LINE);
         assertThat(edge.getFromNodeId()).isEqualTo(sourceId);
         assertThat(edge.getToNodeId()).isEqualTo(targetId);
         assertThat(edge.getGeometry()).isEqualTo(geometry);
@@ -49,7 +50,7 @@ class GridEdgeTest {
         assertThatThrownBy(() -> GridEdge.builder()
                 .id(CommonKernel.GridEdgeId.generate())
                 .name(null)
-                .type(GridEdge.EdgeType.TRANSMISSION_LINE)
+                .type(EdgeType.TRANSMISSION_LINE)
                 .fromNodeId(CommonKernel.GridNodeId.generate())
                 .toNodeId(CommonKernel.GridNodeId.generate())
                 .geometry(TestGeometryFactory.lineString(new double[][]{{0,0},{1,0},{1,1},{0,1}}))
@@ -81,7 +82,7 @@ class GridEdgeTest {
         assertThatThrownBy(() -> GridEdge.builder()
                 .id(CommonKernel.GridEdgeId.generate())
                 .name("Test")
-                .type(GridEdge.EdgeType.TRANSMISSION_LINE)
+                .type(EdgeType.TRANSMISSION_LINE)
                 .fromNodeId(null)
                 .toNodeId(CommonKernel.GridNodeId.generate())
                 .geometry(TestGeometryFactory.lineString(new double[][]{{0,0},{1,0},{1,1},{0,1}}))
@@ -97,7 +98,7 @@ class GridEdgeTest {
         assertThatThrownBy(() -> GridEdge.builder()
                 .id(CommonKernel.GridEdgeId.generate())
                 .name("Test")
-                .type(GridEdge.EdgeType.TRANSMISSION_LINE)
+                .type(EdgeType.TRANSMISSION_LINE)
                 .fromNodeId(CommonKernel.GridNodeId.generate())
                 .toNodeId(null)
                 .geometry(TestGeometryFactory.lineString(new double[][]{{0,0},{1,0},{1,1},{0,1}}))
@@ -113,7 +114,7 @@ class GridEdgeTest {
         assertThatThrownBy(() -> GridEdge.builder()
                 .id(CommonKernel.GridEdgeId.generate())
                 .name("Test")
-                .type(GridEdge.EdgeType.TRANSMISSION_LINE)
+                .type(EdgeType.TRANSMISSION_LINE)
                 .fromNodeId(CommonKernel.GridNodeId.generate())
                 .toNodeId(CommonKernel.GridNodeId.generate())
                 .geometry(null)
@@ -130,7 +131,7 @@ class GridEdgeTest {
         GridEdge edge = GridEdge.builder()
                 .id(CommonKernel.GridEdgeId.generate())
                 .name("Test")
-                .type(GridEdge.EdgeType.TRANSMISSION_LINE)
+                .type(EdgeType.TRANSMISSION_LINE)
                 .fromNodeId(CommonKernel.GridNodeId.generate())
                 .toNodeId(CommonKernel.GridNodeId.generate())
                 .geometry(TestGeometryFactory.lineString(new double[][]{{0,0},{1,0},{1,1},{0,1}}))
@@ -149,7 +150,7 @@ class GridEdgeTest {
         assertThatThrownBy(() -> GridEdge.builder()
                 .id(CommonKernel.GridEdgeId.generate())
                 .name("Test")
-                .type(GridEdge.EdgeType.TRANSMISSION_LINE)
+                .type(EdgeType.TRANSMISSION_LINE)
                 .fromNodeId(CommonKernel.GridNodeId.generate())
                 .toNodeId(CommonKernel.GridNodeId.generate())
                 .geometry(TestGeometryFactory.lineString(new double[][]{{0,0},{1,0},{1,1},{0,1}}))
@@ -166,7 +167,7 @@ class GridEdgeTest {
         assertThatThrownBy(() -> GridEdge.builder()
                 .id(CommonKernel.GridEdgeId.generate())
                 .name("Test")
-                .type(GridEdge.EdgeType.TRANSMISSION_LINE)
+                .type(EdgeType.TRANSMISSION_LINE)
                 .fromNodeId(CommonKernel.GridNodeId.generate())
                 .toNodeId(CommonKernel.GridNodeId.generate())
                 .geometry(TestGeometryFactory.lineString(new double[][]{{0,0},{1,0},{1,1},{0,1}}))
@@ -183,7 +184,7 @@ class GridEdgeTest {
         assertThatThrownBy(() -> GridEdge.builder()
                 .id(CommonKernel.GridEdgeId.generate())
                 .name("Test")
-                .type(GridEdge.EdgeType.TRANSMISSION_LINE)
+                .type(EdgeType.TRANSMISSION_LINE)
                 .fromNodeId(nodeId)
                 .toNodeId(nodeId)
                 .geometry(TestGeometryFactory.lineString(new double[][]{{0,0},{1,0},{1,1},{0,1}}))
@@ -204,7 +205,7 @@ class GridEdgeTest {
         GridEdge edge1 = GridEdge.builder()
                 .id(id)
                 .name("Test")
-                .type(GridEdge.EdgeType.TRANSMISSION_LINE)
+                .type(EdgeType.TRANSMISSION_LINE)
                 .fromNodeId(sourceId)
                 .toNodeId(targetId)
                 .geometry(geometry)
@@ -216,7 +217,7 @@ class GridEdgeTest {
         GridEdge edge2 = GridEdge.builder()
                 .id(id)
                 .name("Test")
-                .type(GridEdge.EdgeType.TRANSMISSION_LINE)
+                .type(EdgeType.TRANSMISSION_LINE)
                 .fromNodeId(sourceId)
                 .toNodeId(targetId)
                 .geometry(geometry)
@@ -231,7 +232,7 @@ class GridEdgeTest {
 
     @Test
     void gridEdgeAllTypes() {
-        for (GridEdge.EdgeType type : GridEdge.EdgeType.values()) {
+        for (EdgeType type : EdgeType.values()) {
             GridEdge edge = GridEdge.builder()
                     .id(CommonKernel.GridEdgeId.generate())
                     .name("Test " + type)
@@ -257,7 +258,7 @@ class GridEdgeTest {
         GridEdge edge = GridEdge.builder()
                 .id(CommonKernel.GridEdgeId.generate())
                 .name("Test")
-                .type(GridEdge.EdgeType.TRANSMISSION_LINE)
+                .type(EdgeType.TRANSMISSION_LINE)
                 .fromNodeId(nodeA)
                 .toNodeId(nodeB)
                 .geometry(TestGeometryFactory.lineString(new double[][]{{0,0},{1,0},{1,1},{0,1}}))
@@ -279,7 +280,7 @@ class GridEdgeTest {
         GridEdge edge = GridEdge.builder()
                 .id(CommonKernel.GridEdgeId.generate())
                 .name("Test")
-                .type(GridEdge.EdgeType.TRANSMISSION_LINE)
+                .type(EdgeType.TRANSMISSION_LINE)
                 .fromNodeId(nodeA)
                 .toNodeId(nodeB)
                 .geometry(TestGeometryFactory.lineString(new double[][]{{0,0},{1,0},{1,1},{0,1}}))
@@ -297,7 +298,7 @@ class GridEdgeTest {
         GridEdge transformer = GridEdge.builder()
                 .id(CommonKernel.GridEdgeId.generate())
                 .name("Test")
-                .type(GridEdge.EdgeType.TRANSFORMER)
+                .type(EdgeType.TRANSFORMER)
                 .fromNodeId(CommonKernel.GridNodeId.generate())
                 .toNodeId(CommonKernel.GridNodeId.generate())
                 .geometry(TestGeometryFactory.lineString(new double[][]{{0,0},{1,0},{1,1},{0,1}}))
@@ -309,7 +310,7 @@ class GridEdgeTest {
         GridEdge line = GridEdge.builder()
                 .id(CommonKernel.GridEdgeId.generate())
                 .name("Test")
-                .type(GridEdge.EdgeType.TRANSMISSION_LINE)
+                .type(EdgeType.TRANSMISSION_LINE)
                 .fromNodeId(CommonKernel.GridNodeId.generate())
                 .toNodeId(CommonKernel.GridNodeId.generate())
                 .geometry(TestGeometryFactory.lineString(new double[][]{{0,0},{1,0},{1,1},{0,1}}))
@@ -327,7 +328,7 @@ class GridEdgeTest {
         GridEdge edge = GridEdge.builder()
                 .id(CommonKernel.GridEdgeId.generate())
                 .name("Test")
-                .type(GridEdge.EdgeType.TRANSMISSION_LINE)
+                .type(EdgeType.TRANSMISSION_LINE)
                 .fromNodeId(CommonKernel.GridNodeId.generate())
                 .toNodeId(CommonKernel.GridNodeId.generate())
                 .geometry(TestGeometryFactory.lineString(new double[][]{{0,0},{1,0},{1,1},{0,1}}))

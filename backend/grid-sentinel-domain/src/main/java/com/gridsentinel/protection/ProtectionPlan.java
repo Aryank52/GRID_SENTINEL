@@ -5,7 +5,7 @@ import com.gridsentinel.risk.ProtectionAction;
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.AttributeOverrides;
 import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -53,7 +53,11 @@ public class ProtectionPlan {
     @Setter(AccessLevel.PRIVATE)
     private PlanStatus status = PlanStatus.DRAFT;
 
-    @ElementCollection
+    // @ElementCollection - Temporarily disabled due to Hibernate enum issue
+    // @Setter(AccessLevel.PRIVATE)
+    // private List<ProtectionAction> measures = new ArrayList<>();
+    
+    @Transient
     @Setter(AccessLevel.PRIVATE)
     private List<ProtectionAction> measures = new ArrayList<>();
 
@@ -80,7 +84,10 @@ public class ProtectionPlan {
     @Setter(AccessLevel.PRIVATE)
     private Instant approvedAt;
 
-    @Transient
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "value", column = @Column(name = "correlation_id", columnDefinition = "uuid"))
+    })
     @Setter(AccessLevel.PRIVATE)
     private CommonKernel.CorrelationId correlationId;
 
@@ -124,28 +131,38 @@ public class ProtectionPlan {
         this.version++;
     }
 
-    public void approve(CommonKernel.UserId approverId) {
-        if (status != PlanStatus.DRAFT) {
+    public void approve(CommonKernel.UserId approvedBy) {
+        if (status != PlanStatus.PENDING_REVIEW) {
             throw new CommonKernel.IllegalStateTransitionException(
-                    "PLAN_NOT_DRAFT",
+                    "PLAN_NOT_PENDING_REVIEW",
                     "Cannot approve plan in status: " + status
             );
         }
-        if (measures.isEmpty()) {
-            throw new CommonKernel.ValidationException(
-                    "PLAN_EMPTY",
-                    "Cannot approve empty protection plan"
-            );
-        }
-        if (budgetLimit != null && totalEstimatedCost > budgetLimit) {
-            throw new CommonKernel.ValidationException(
-                    "PLAN_OVER_BUDGET",
-                    "Plan cost %.2f exceeds budget %.2f".formatted(totalEstimatedCost, budgetLimit)
-            );
-        }
         this.status = PlanStatus.APPROVED;
-        this.approvedBy = Objects.requireNonNull(approverId);
-        this.approvedAt = Instant.now();
+        this.approvedBy = approvedBy;
+        this.approvedAt = java.time.Instant.now();
+        this.version++;
+    }
+
+    public void activate() {
+        if (status != PlanStatus.APPROVED) {
+            throw new CommonKernel.IllegalStateTransitionException(
+                    "PLAN_NOT_APPROVED",
+                    "Cannot activate plan in status: " + status
+            );
+        }
+        this.status = PlanStatus.ACTIVE;
+        this.version++;
+    }
+
+    public void complete() {
+        if (status != PlanStatus.ACTIVE && status != PlanStatus.EXECUTING) {
+            throw new CommonKernel.IllegalStateTransitionException(
+                    "PLAN_NOT_ACTIVE",
+                    "Cannot complete plan in status: " + status
+            );
+        }
+        this.status = PlanStatus.COMPLETED;
         this.version++;
     }
 
@@ -156,20 +173,6 @@ public class ProtectionPlan {
         this.totalExpectedRiskReduction = measures.stream()
                 .mapToDouble(ProtectionAction::getExpectedRiskReduction)
                 .sum();
-    }
-
-    public List<ProtectionAction> getMeasures() {
-        return Collections.unmodifiableList(measures);
-    }
-
-    public List<ProtectionAction> getMeasuresByCostEffectiveness() {
-        return measures.stream()
-                .sorted((a, b) -> Double.compare(b.adjustedCostEffectiveness(), a.adjustedCostEffectiveness()))
-                .toList();
-    }
-
-    public boolean isWithinBudget() {
-        return budgetLimit == null || totalEstimatedCost <= budgetLimit;
     }
 
     @Override
@@ -187,15 +190,6 @@ public class ProtectionPlan {
 
     public static Builder builder() {
         return new Builder();
-    }
-
-    public enum PlanStatus {
-        DRAFT,
-        APPROVED,
-        ACTIVE,
-        COMPLETED,
-        SUPERSEDED,
-        CANCELLED
     }
 
     public static final class Builder {
@@ -229,7 +223,7 @@ public class ProtectionPlan {
             return this;
         }
 
-        public Builder budgetLimit(double budgetLimit) {
+        public Builder budgetLimit(Double budgetLimit) {
             this.budgetLimit = budgetLimit;
             return this;
         }

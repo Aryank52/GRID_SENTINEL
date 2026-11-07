@@ -22,7 +22,7 @@ public interface GridNodeRepository extends JpaRepository<GridNode, CommonKernel
      */
     @Query(value = """
         SELECT n FROM GridNode n
-        WHERE n.geometry.geometry && :envelope
+        WHERE ST_Intersects(n.geometry.geometry, :envelope)
         """)
     List<GridNode> findByBbox(@Param("envelope") Envelope envelope);
 
@@ -31,7 +31,7 @@ public interface GridNodeRepository extends JpaRepository<GridNode, CommonKernel
      */
     @Query(value = """
         SELECT n FROM GridNode n
-        WHERE n.geometry.geometry && :envelope
+        WHERE ST_Intersects(n.geometry.geometry, :envelope)
         AND n.type = :type
         """)
     List<GridNode> findByBboxAndType(@Param("envelope") Envelope envelope,
@@ -42,7 +42,7 @@ public interface GridNodeRepository extends JpaRepository<GridNode, CommonKernel
      */
     @Query(value = """
         SELECT n FROM GridNode n
-        WHERE n.geometry.geometry && :envelope
+        WHERE ST_Intersects(n.geometry.geometry, :envelope)
         AND n.voltageLevelKv BETWEEN :minKv AND :maxKv
         """)
     List<GridNode> findByBboxAndVoltageRange(@Param("envelope") Envelope envelope,
@@ -52,14 +52,14 @@ public interface GridNodeRepository extends JpaRepository<GridNode, CommonKernel
     /**
      * Find grid node by ID with geometry.
      */
-    Optional<GridNode> findByIdWithGeometry(CommonKernel.GridNodeId id);
+    Optional<GridNode> findById(CommonKernel.GridNodeId id);
 
     /**
      * Count grid nodes within bounding box.
      */
     @Query(value = """
         SELECT COUNT(n) FROM GridNode n
-        WHERE n.geometry.geometry && :envelope
+        WHERE ST_Intersects(n.geometry.geometry, :envelope)
         """)
     long countByBbox(@Param("envelope") Envelope envelope);
 }

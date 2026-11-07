@@ -1,0 +1,45 @@
+package com.gridsentinel.response;
+
+/**
+ * Type of response action.
+ */
+public enum ActionType {
+    // Immediate physical actions
+    DE_ENERGIZE_LINE,
+    DE_ENERGIZE_TRANSFORMER,
+    OPEN_SWITCH,
+    CLOSE_SWITCH,
+    ISOLATE_SECTION,
+    RECONFIGURE_NETWORK,
+
+    // Crew dispatch
+    DISPATCH_GROUND_CREW,
+    DISPATCH_DRONE,
+    DISPATCH_HELICOPTER,
+
+    // Operational
+    SHED_LOAD,
+    ACTIVATE_RESERVES,
+    ADJUST_GENERATION,
+    ACTIVATE_DEMAND_RESPONSE,
+
+    // Protection
+    ENABLE_PROTECTION,
+    DISABLE_PROTECTION,
+    ADJUST_PROTECTION_SETTINGS,
+
+    // Communication
+    ESTABLISH_COMMUNICATIONS,
+    NOTIFY_STAKEHOLDERS,
+    ACTIVATE_EMERGENCY_PROTOCOLS,
+
+    // Assessment
+    CONDUCT_INSPECTION,
+    PERFORM_DIAGNOSTICS,
+    VERIFY_RESTORATION,
+
+    // Recovery
+    REPAIR_EQUIPMENT,
+    REPLACE_COMPONENT,
+    RESTORE_SERVICE
+}

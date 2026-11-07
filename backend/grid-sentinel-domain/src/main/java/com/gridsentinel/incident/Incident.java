@@ -1,7 +1,12 @@
 package com.gridsentinel.incident;
 
 import com.gridsentinel.common.CommonKernel;
+import com.gridsentinel.common.IncidentState;
+import com.gridsentinel.common.ThreatSeverity;
 import com.gridsentinel.detection.ThreatEvent;
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.AttributeOverrides;
+import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.Embedded;
@@ -10,6 +15,7 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
@@ -43,6 +49,9 @@ import java.util.UUID;
 public class Incident {
 
     @Id
+    @AttributeOverrides({
+        @AttributeOverride(name = "value", column = @Column(name = "incident_id", nullable = false, columnDefinition = "uuid"))
+    })
     @Setter(AccessLevel.PRIVATE)
     private CommonKernel.IncidentId id;
 
@@ -53,22 +62,38 @@ public class Incident {
     @NotNull
     @Enumerated(EnumType.STRING)
     @Setter(AccessLevel.PRIVATE)
-    private CommonKernel.IncidentState state = CommonKernel.IncidentState.DETECTED;
+    private IncidentState state = IncidentState.DETECTED;
 
     @NotNull
+    @Enumerated(EnumType.STRING)
     @Setter(AccessLevel.PRIVATE)
-    private CommonKernel.ThreatSeverity severity;
+    private ThreatSeverity severity;
 
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "value", column = @Column(name = "originating_threat_id", columnDefinition = "uuid"))
+    })
     @Setter(AccessLevel.PRIVATE)
     private CommonKernel.ThreatEventId originatingThreatId;
 
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "value", column = @Column(name = "primary_asset_id", columnDefinition = "uuid"))
+    })
     @Setter(AccessLevel.PRIVATE)
     private CommonKernel.AssetId primaryAssetId;
 
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "value", column = @Column(name = "primary_grid_node_id", columnDefinition = "uuid"))
+    })
     @Setter(AccessLevel.PRIVATE)
     private CommonKernel.GridNodeId primaryGridNodeId;
 
     @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "value", column = @Column(name = "location_value", columnDefinition = "geometry"))
+    })
     @Setter(AccessLevel.PRIVATE)
     private CommonKernel.GeometryValueObject location;
 
@@ -80,15 +105,13 @@ public class Incident {
     @Setter(AccessLevel.PRIVATE)
     private String operatorNotes;
 
-    @ElementCollection
+    // @ElementCollection - Temporarily disabled due to Hibernate enum issue
+    // @Setter(AccessLevel.PRIVATE)
+    // private List<StateTransition> stateHistory = new ArrayList<>();
+    
+    @Transient
     @Setter(AccessLevel.PRIVATE)
     private List<StateTransition> stateHistory = new ArrayList<>();
-
-    @Setter(AccessLevel.PRIVATE)
-    private CommonKernel.UserId assignedOperatorId;
-
-    @Setter(AccessLevel.PRIVATE)
-    private CommonKernel.UserId incidentCommanderId;
 
     @Setter(AccessLevel.PRIVATE)
     private Instant detectedAt;
@@ -114,8 +137,26 @@ public class Incident {
     @Setter(AccessLevel.PRIVATE)
     private Instant closedAt;
 
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "value", column = @Column(name = "correlation_id", columnDefinition = "uuid"))
+    })
     @Setter(AccessLevel.PRIVATE)
     private CommonKernel.CorrelationId correlationId;
+
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "value", column = @Column(name = "assigned_operator_id", columnDefinition = "uuid"))
+    })
+    @Setter(AccessLevel.PRIVATE)
+    private CommonKernel.UserId assignedOperatorId;
+
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "value", column = @Column(name = "incident_commander_id", columnDefinition = "uuid"))
+    })
+    @Setter(AccessLevel.PRIVATE)
+    private CommonKernel.UserId incidentCommanderId;
 
     @Setter(AccessLevel.PRIVATE)
     private Instant createdAt;
@@ -129,7 +170,7 @@ public class Incident {
     private Incident(Builder builder) {
         this.id = builder.id;
         this.incidentNumber = builder.incidentNumber != null ? builder.incidentNumber : generateIncidentNumber();
-        this.state = CommonKernel.IncidentState.DETECTED;
+        this.state = IncidentState.DETECTED;
         this.severity = Objects.requireNonNull(builder.severity, "Severity cannot be null");
         this.originatingThreatId = builder.originatingThreatId;
         this.primaryAssetId = builder.primaryAssetId;
@@ -146,7 +187,7 @@ public class Incident {
         this.version = 0;
 
         // Record initial state
-        addStateTransition(CommonKernel.IncidentState.DETECTED, null, "Incident created", this.correlationId);
+        addStateTransition(IncidentState.DETECTED, null, "Incident created", this.correlationId);
     }
 
     private String generateIncidentNumber() {
@@ -158,18 +199,18 @@ public class Incident {
     // =========================================================================
 
     public void triage(CommonKernel.UserId operatorId, String notes) {
-        transitionTo(CommonKernel.IncidentState.TRIAGED, operatorId, notes);
+        transitionTo(IncidentState.TRIAGED, operatorId, notes);
         this.triagedAt = Instant.now();
         this.assignedOperatorId = operatorId;
     }
 
     public void confirm(CommonKernel.UserId operatorId, String notes) {
-        transitionTo(CommonKernel.IncidentState.CONFIRMED, operatorId, notes);
+        transitionTo(IncidentState.CONFIRMED, operatorId, notes);
         this.confirmedAt = Instant.now();
     }
 
     public void markFalsePositive(CommonKernel.UserId operatorId, String notes) {
-        transitionTo(CommonKernel.IncidentState.DETECTED, operatorId, notes); // DETECTED used as terminal for false positive
+        transitionTo(IncidentState.DETECTED, operatorId, notes); // DETECTED used as terminal for false positive
         // Actually, we should have a FALSE_POSITIVE state - but enum doesn't have it
         // Let's use a special handling
         throw new CommonKernel.IllegalStateTransitionException(
@@ -179,34 +220,34 @@ public class Incident {
     }
 
     public void startResponse(CommonKernel.UserId commanderId, String notes) {
-        transitionTo(CommonKernel.IncidentState.ACTIVE_RESPONSE, commanderId, notes);
+        transitionTo(IncidentState.ACTIVE_RESPONSE, commanderId, notes);
         this.responseStartedAt = Instant.now();
         this.incidentCommanderId = commanderId;
     }
 
     public void contain(CommonKernel.UserId operatorId, String notes) {
-        transitionTo(CommonKernel.IncidentState.CONTAINED, operatorId, notes);
+        transitionTo(IncidentState.CONTAINED, operatorId, notes);
         this.containedAt = Instant.now();
     }
 
     public void startRecovery(CommonKernel.UserId operatorId, String notes) {
-        transitionTo(CommonKernel.IncidentState.RECOVERING, operatorId, notes);
+        transitionTo(IncidentState.RECOVERING, operatorId, notes);
         this.recoveringAt = Instant.now();
     }
 
     public void resolve(CommonKernel.UserId operatorId, String notes) {
-        transitionTo(CommonKernel.IncidentState.RESOLVED, operatorId, notes);
+        transitionTo(IncidentState.RESOLVED, operatorId, notes);
         this.resolvedAt = Instant.now();
     }
 
     public void close(CommonKernel.UserId operatorId, String notes) {
-        transitionTo(CommonKernel.IncidentState.CLOSED, operatorId, notes);
+        transitionTo(IncidentState.CLOSED, operatorId, notes);
         this.closedAt = Instant.now();
     }
 
     public void cancel(CommonKernel.UserId operatorId, String notes) {
-        if (state == CommonKernel.IncidentState.CONFIRMED || state == CommonKernel.IncidentState.ACTIVE_RESPONSE) {
-            transitionTo(CommonKernel.IncidentState.DETECTED, operatorId, notes); // Using DETECTED as cancelled terminal
+        if (state == IncidentState.CONFIRMED || state == IncidentState.ACTIVE_RESPONSE) {
+            transitionTo(IncidentState.DETECTED, operatorId, notes); // Using DETECTED as cancelled terminal
             throw new CommonKernel.IllegalStateTransitionException(
                     "INCIDENT_CANCELLED",
                     "Incident cancelled: " + notes
@@ -218,24 +259,24 @@ public class Incident {
         );
     }
 
-    private void transitionTo(CommonKernel.IncidentState newState, CommonKernel.UserId actorId, String reason) {
+    private void transitionTo(IncidentState newState, CommonKernel.UserId actorId, String reason) {
         validateTransition(newState);
-        CommonKernel.IncidentState oldState = this.state;
+        IncidentState oldState = this.state;
         this.state = newState;
         this.updatedAt = Instant.now();
         this.version++;
         addStateTransition(newState, actorId, reason, correlationId);
     }
 
-    private void validateTransition(CommonKernel.IncidentState newState) {
+    private void validateTransition(IncidentState newState) {
         boolean valid = switch (state) {
-            case DETECTED -> newState == CommonKernel.IncidentState.TRIAGED;
-            case TRIAGED -> newState == CommonKernel.IncidentState.CONFIRMED;
-            case CONFIRMED -> newState == CommonKernel.IncidentState.ACTIVE_RESPONSE;
-            case ACTIVE_RESPONSE -> newState == CommonKernel.IncidentState.CONTAINED;
-            case CONTAINED -> newState == CommonKernel.IncidentState.RECOVERING;
-            case RECOVERING -> newState == CommonKernel.IncidentState.RESOLVED;
-            case RESOLVED -> newState == CommonKernel.IncidentState.CLOSED;
+            case DETECTED -> newState == IncidentState.TRIAGED;
+            case TRIAGED -> newState == IncidentState.CONFIRMED;
+            case CONFIRMED -> newState == IncidentState.ACTIVE_RESPONSE;
+            case ACTIVE_RESPONSE -> newState == IncidentState.CONTAINED;
+            case CONTAINED -> newState == IncidentState.RECOVERING;
+            case RECOVERING -> newState == IncidentState.RESOLVED;
+            case RESOLVED -> newState == IncidentState.CLOSED;
             case CLOSED -> false; // Terminal
         };
         if (!valid) {
@@ -246,7 +287,7 @@ public class Incident {
         }
     }
 
-    private void addStateTransition(CommonKernel.IncidentState toState, CommonKernel.UserId actorId, String reason, CommonKernel.CorrelationId correlationId) {
+    private void addStateTransition(IncidentState toState, CommonKernel.UserId actorId, String reason, CommonKernel.CorrelationId correlationId) {
         stateHistory.add(new StateTransition(toState, actorId, reason, correlationId, Instant.now()));
     }
 
@@ -255,11 +296,11 @@ public class Incident {
     }
 
     public boolean isActive() {
-        return state != CommonKernel.IncidentState.CLOSED && state != CommonKernel.IncidentState.RESOLVED;
+        return state != IncidentState.CLOSED && state != IncidentState.RESOLVED;
     }
 
     public boolean isTerminal() {
-        return state == CommonKernel.IncidentState.CLOSED || state == CommonKernel.IncidentState.RESOLVED;
+        return state == IncidentState.CLOSED || state == IncidentState.RESOLVED;
     }
 
     @Override
@@ -282,7 +323,7 @@ public class Incident {
     public static final class Builder {
         private CommonKernel.IncidentId id = CommonKernel.IncidentId.generate();
         private String incidentNumber;
-        private CommonKernel.ThreatSeverity severity;
+        private ThreatSeverity severity;
         private CommonKernel.ThreatEventId originatingThreatId;
         private CommonKernel.AssetId primaryAssetId;
         private CommonKernel.GridNodeId primaryGridNodeId;
@@ -306,7 +347,7 @@ public class Incident {
             return this;
         }
 
-        public Builder severity(CommonKernel.ThreatSeverity severity) {
+        public Builder severity(ThreatSeverity severity) {
             this.severity = severity;
             return this;
         }
@@ -372,7 +413,7 @@ public class Incident {
     public static final class StateTransition {
         @Enumerated(EnumType.STRING)
         @Setter(AccessLevel.PRIVATE)
-        private CommonKernel.IncidentState toState;
+        private IncidentState toState;
 
         @Setter(AccessLevel.PRIVATE)
         private CommonKernel.UserId actorId;
@@ -386,7 +427,7 @@ public class Incident {
         @Setter(AccessLevel.PRIVATE)
         private Instant timestamp;
 
-        public StateTransition(CommonKernel.IncidentState toState, CommonKernel.UserId actorId, String reason, CommonKernel.CorrelationId correlationId, Instant timestamp) {
+        public StateTransition(IncidentState toState, CommonKernel.UserId actorId, String reason, CommonKernel.CorrelationId correlationId, Instant timestamp) {
             this.toState = toState;
             this.actorId = actorId;
             this.reason = reason;

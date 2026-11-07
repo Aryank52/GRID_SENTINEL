@@ -13,6 +13,7 @@ import com.gridsentinel.response.ResponsePlan;
 import com.gridsentinel.grid.TopologySnapshot;
 import com.gridsentinel.protection.ProtectionPlan;
 import com.gridsentinel.common.CommonKernel;
+import com.gridsentinel.common.ObservationSourceType;
 
 import java.util.List;
 import java.util.Set;
@@ -248,7 +249,7 @@ public final class StrategyInterfaces {
         /**
          * Get the source type this adapter handles.
          */
-        CommonKernel.ObservationSourceType sourceType();
+        ObservationSourceType sourceType();
 
         StrategyMetadata metadata();
     }

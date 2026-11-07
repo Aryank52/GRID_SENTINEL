@@ -83,6 +83,7 @@ public class DatabaseConfig {
         em.setDataSource(dataSource);
         em.setJpaVendorAdapter(jpaVendorAdapter);
         em.setPackagesToScan(
+                "com.gridsentinel.common",
                 "com.gridsentinel.asset",
                 "com.gridsentinel.grid",
                 "com.gridsentinel.observation",

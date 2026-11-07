@@ -1,6 +1,7 @@
 package com.gridsentinel.observation;
 
 import com.gridsentinel.common.CommonKernel;
+import com.gridsentinel.common.ObservationSourceType;
 import com.gridsentinel.test.TestGeometryFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -20,7 +21,7 @@ class ObservationTest {
 
         Observation obs = Observation.builder()
                 .id(id)
-                .sourceType(CommonKernel.ObservationSourceType.THERMAL_CAMERA)
+                .sourceType(ObservationSourceType.THERMAL_CAMERA)
                 .sourceIdentifier("CAM-001")
                 .timestamp(Instant.now())
                 .geometry(geometry)
@@ -30,7 +31,7 @@ class ObservationTest {
 
         assertThat(obs.getId()).isEqualTo(id);
         assertThat(obs.getAssociatedAssetId()).isEqualTo(assetId);
-        assertThat(obs.getSourceType()).isEqualTo(CommonKernel.ObservationSourceType.THERMAL_CAMERA);
+        assertThat(obs.getSourceType()).isEqualTo(ObservationSourceType.THERMAL_CAMERA);
         assertThat(obs.getSourceIdentifier()).isEqualTo("CAM-001");
         assertThat(obs.getTimestamp()).isNotNull();
         assertThat(obs.getGeometry()).isEqualTo(geometry);
@@ -43,7 +44,7 @@ class ObservationTest {
         // associatedAssetId is nullable, so this should not throw
         Observation obs = Observation.builder()
                 .id(CommonKernel.ObservationId.generate())
-                .sourceType(CommonKernel.ObservationSourceType.THERMAL_CAMERA)
+                .sourceType(ObservationSourceType.THERMAL_CAMERA)
                 .sourceIdentifier("CAM-001")
                 .timestamp(Instant.now())
                 .geometry(TestGeometryFactory.point(0, 0))
@@ -70,7 +71,7 @@ class ObservationTest {
     void observationSourceIdentifierCannotBeNull() {
         assertThatThrownBy(() -> Observation.builder()
                 .id(CommonKernel.ObservationId.generate())
-                .sourceType(CommonKernel.ObservationSourceType.THERMAL_CAMERA)
+                .sourceType(ObservationSourceType.THERMAL_CAMERA)
                 .sourceIdentifier(null)
                 .timestamp(Instant.now())
                 .geometry(TestGeometryFactory.point(0, 0))
@@ -83,7 +84,7 @@ class ObservationTest {
     void observationTimestampCannotBeNull() {
         assertThatThrownBy(() -> Observation.builder()
                 .id(CommonKernel.ObservationId.generate())
-                .sourceType(CommonKernel.ObservationSourceType.THERMAL_CAMERA)
+                .sourceType(ObservationSourceType.THERMAL_CAMERA)
                 .sourceIdentifier("CAM-001")
                 .timestamp(null)
                 .geometry(TestGeometryFactory.point(0, 0))
@@ -97,7 +98,7 @@ class ObservationTest {
         // Geometry is nullable
         Observation obs = Observation.builder()
                 .id(CommonKernel.ObservationId.generate())
-                .sourceType(CommonKernel.ObservationSourceType.THERMAL_CAMERA)
+                .sourceType(ObservationSourceType.THERMAL_CAMERA)
                 .sourceIdentifier("CAM-001")
                 .timestamp(Instant.now())
                 .geometry(null)
@@ -111,7 +112,7 @@ class ObservationTest {
     void observationPayloadCannotBeNull() {
         assertThatThrownBy(() -> Observation.builder()
                 .id(CommonKernel.ObservationId.generate())
-                .sourceType(CommonKernel.ObservationSourceType.THERMAL_CAMERA)
+                .sourceType(ObservationSourceType.THERMAL_CAMERA)
                 .sourceIdentifier("CAM-001")
                 .timestamp(Instant.now())
                 .geometry(TestGeometryFactory.point(0, 0))
@@ -124,7 +125,7 @@ class ObservationTest {
     void observationFutureTimestampThrows() {
         assertThatThrownBy(() -> Observation.builder()
                 .id(CommonKernel.ObservationId.generate())
-                .sourceType(CommonKernel.ObservationSourceType.THERMAL_CAMERA)
+                .sourceType(ObservationSourceType.THERMAL_CAMERA)
                 .sourceIdentifier("CAM-001")
                 .timestamp(Instant.now().plusSeconds(600)) // 10 minutes in future
                 .geometry(TestGeometryFactory.point(0, 0))
@@ -135,7 +136,7 @@ class ObservationTest {
 
     @Test
     void observationAllSourceTypes() {
-        for (CommonKernel.ObservationSourceType type : CommonKernel.ObservationSourceType.values()) {
+        for (ObservationSourceType type : ObservationSourceType.values()) {
             Observation obs = Observation.builder()
                     .id(CommonKernel.ObservationId.generate())
                     .sourceType(type)
@@ -158,7 +159,7 @@ class ObservationTest {
 
         Observation obs1 = Observation.builder()
                 .id(id)
-                .sourceType(CommonKernel.ObservationSourceType.THERMAL_CAMERA)
+                .sourceType(ObservationSourceType.THERMAL_CAMERA)
                 .sourceIdentifier("CAM-001")
                 .timestamp(timestamp)
                 .geometry(geometry)
@@ -168,7 +169,7 @@ class ObservationTest {
 
         Observation obs2 = Observation.builder()
                 .id(id)
-                .sourceType(CommonKernel.ObservationSourceType.THERMAL_CAMERA)
+                .sourceType(ObservationSourceType.THERMAL_CAMERA)
                 .sourceIdentifier("CAM-001")
                 .timestamp(timestamp)
                 .geometry(geometry)
@@ -184,7 +185,7 @@ class ObservationTest {
     void observationIntegrityVerification() {
         Observation obs = Observation.builder()
                 .id(CommonKernel.ObservationId.generate())
-                .sourceType(CommonKernel.ObservationSourceType.THERMAL_CAMERA)
+                .sourceType(ObservationSourceType.THERMAL_CAMERA)
                 .sourceIdentifier("CAM-001")
                 .timestamp(Instant.now())
                 .geometry(TestGeometryFactory.point(0, 0))

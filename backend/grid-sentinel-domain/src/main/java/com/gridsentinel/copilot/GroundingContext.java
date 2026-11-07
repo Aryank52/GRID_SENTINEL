@@ -3,6 +3,7 @@ package com.gridsentinel.copilot;
 import com.gridsentinel.common.CommonKernel;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Embeddable;
+import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -42,9 +43,13 @@ public final class GroundingContext {
     @Setter(AccessLevel.PRIVATE)
     private CommonKernel.ThreatEventId threatEventId;
 
-    @ElementCollection
-    @Setter(AccessLevel.PRIVATE)
-    private Map<String, String> structuredData = new HashMap<>(); // Key-value pairs of system facts
+    // @ElementCollection - Temporarily disabled due to Hibernate enum issue
+    // @Setter(AccessLevel.PRIVATE)
+    // private Map<String, String> structuredData = new HashMap<>(); // Key-value pairs of system facts
+    
+    // @Transient - Temporarily removed to debug Hibernate enum issue
+    // @Setter(AccessLevel.PRIVATE)
+    // private Map<String, String> structuredData = new HashMap<>(); // Key-value pairs of system facts
 
     private GroundingContext(Builder builder) {
         this.incidentId = builder.incidentId;
@@ -52,12 +57,12 @@ public final class GroundingContext {
         this.simulationId = builder.simulationId;
         this.riskScoreId = builder.riskScoreId;
         this.threatEventId = builder.threatEventId;
-        this.structuredData = Map.copyOf(builder.structuredData);
+        // this.structuredData = Map.copyOf(builder.structuredData);
     }
 
-    public Map<String, String> getStructuredData() {
-        return Collections.unmodifiableMap(structuredData);
-    }
+    // public Map<String, String> getStructuredData() {
+    //     return Collections.unmodifiableMap(structuredData);
+    // }
 
     public static Builder builder() {
         return new Builder();
@@ -69,7 +74,7 @@ public final class GroundingContext {
         private CommonKernel.SimulationId simulationId;
         private CommonKernel.RiskScoreId riskScoreId;
         private CommonKernel.ThreatEventId threatEventId;
-        private Map<String, String> structuredData = new HashMap<>();
+        // private Map<String, String> structuredData = new HashMap<>();
 
         private Builder() {}
 
@@ -98,15 +103,15 @@ public final class GroundingContext {
             return this;
         }
 
-        public Builder addFact(String key, String value) {
-            this.structuredData.put(Objects.requireNonNull(key), Objects.requireNonNull(value));
-            return this;
-        }
-
-        public Builder addFacts(Map<String, String> facts) {
-            this.structuredData.putAll(facts);
-            return this;
-        }
+        //         public Builder addFact(String key, String value) {
+//             this.structuredData.put(Objects.requireNonNull(key), Objects.requireNonNull(value));
+//             return this;
+//         }
+//
+//         public Builder addFacts(Map<String, String> facts) {
+//             this.structuredData.putAll(facts);
+//             return this;
+//         }
 
         public GroundingContext build() {
             return new GroundingContext(this);

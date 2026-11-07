@@ -2,6 +2,8 @@ package com.gridsentinel.risk;
 
 import com.gridsentinel.common.CommonKernel;
 import jakarta.persistence.Embeddable;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -35,6 +37,7 @@ public final class ProtectionAction {
     private String description;
 
     @NotNull
+    @Enumerated(EnumType.STRING)
     @Setter(AccessLevel.PRIVATE)
     private ActionCategory category;
 
@@ -89,21 +92,6 @@ public final class ProtectionAction {
      */
     public double adjustedCostEffectiveness() {
         return costEffectiveness() * confidence;
-    }
-
-    public enum ActionCategory {
-        PHYSICAL_HARDENING,      // Barriers, enclosures, structural reinforcement
-        VEGETATION_MANAGEMENT,   // Clearing, trimming, herbicide
-        MONITORING_INSTALLATION, // Cameras, sensors, thermal monitoring
-        ACCESS_CONTROL,          // Fencing, locks, badge readers, CCTV
-        FIRE_SUPPRESSION,        // Sprinklers, extinguishers, detection
-        SEISMIC_RETROFIT,        // Anchoring, flexible connections
-        FLOOD_PROTECTION,        // Barriers, elevation, drainage
-        REDUNDANCY_ADDITION,     // Spare equipment, parallel paths
-        MAINTENANCE_ACCELERATION,// Increased inspection/replacement frequency
-        OPERATIONAL_PROCEDURE,   // Switching procedures, load shedding plans
-        CYBER_PHYSICAL,          // Physical security for cyber assets
-        EMERGENCY_PREPOSITIONING // Spares, crews, equipment staging
     }
 
     public static Builder builder() {

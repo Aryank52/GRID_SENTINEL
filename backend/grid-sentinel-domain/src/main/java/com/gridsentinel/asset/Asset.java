@@ -2,6 +2,9 @@ package com.gridsentinel.asset;
 
 import com.gridsentinel.common.CommonKernel;
 import com.gridsentinel.grid.GridNode;
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.AttributeOverrides;
+import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -10,6 +13,10 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.Instant;
 import java.util.Collections;
@@ -31,40 +38,70 @@ import java.util.UUID;
  * </ul>
  * </p>
  */
+@Entity
+@Table(name = "assets")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Asset {
 
-    CommonKernel.AssetId id;
+    @Id
+    @AttributeOverrides({
+        @AttributeOverride(name = "value", column = @Column(name = "asset_id", nullable = false, columnDefinition = "uuid"))
+    })
+    @Setter(AccessLevel.PRIVATE)
+    private CommonKernel.AssetId id;
 
     @NotNull
-    String name;
+    @Setter(AccessLevel.PRIVATE)
+    private String name;
 
     @NotNull
-    AssetType type;
+    @Enumerated(EnumType.STRING)
+    @Setter(AccessLevel.PRIVATE)
+    private AssetType type;
 
     @NotNull
-    CommonKernel.Criticality criticality;
+    @Enumerated(EnumType.STRING)
+    @Setter(AccessLevel.PRIVATE)
+    private CommonKernel.Criticality criticality;
 
     @NotNull
-    CommonKernel.HealthIndex healthIndex;
+    @Setter(AccessLevel.PRIVATE)
+    private CommonKernel.HealthIndex healthIndex;
 
-    int redundancyLevel; // 0 = no redundancy, 1 = N+1, 2 = N+2, etc.
+    @Setter(AccessLevel.PRIVATE)
+    private int redundancyLevel; // 0 = no redundancy, 1 = N+1, 2 = N+2, etc.
 
-    CommonKernel.GeometryValueObject geometry;
+    @NotNull
+    @Embedded
+    @Setter(AccessLevel.PRIVATE)
+    private CommonKernel.GeometryValueObject geometry;
 
-    CommonKernel.GridNodeId gridNodeId; // Associated grid topology node
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "value", column = @Column(name = "grid_node_id", columnDefinition = "uuid"))
+    })
+    @Setter(AccessLevel.PRIVATE)
+    private CommonKernel.GridNodeId gridNodeId; // Associated grid topology node
 
     @Size(max = 1000)
-    String description;
+    @Setter(AccessLevel.PRIVATE)
+    private String description;
 
-    Instant installedAt;
+    @Setter(AccessLevel.PRIVATE)
+    private Instant installedAt;
 
-    Instant lastInspectedAt;
+    @Setter(AccessLevel.PRIVATE)
+    private Instant lastInspectedAt;
 
-    Instant createdAt;
+    @Setter(AccessLevel.PRIVATE)
+    private Instant createdAt;
 
-    Instant updatedAt;
+    @Setter(AccessLevel.PRIVATE)
+    private Instant updatedAt;
 
-    int version; // Optimistic locking
+    @Setter(AccessLevel.PRIVATE)
+    private int version; // Optimistic locking
 
     // Domain events (not persisted)
     private final transient Set<CommonKernel.DomainEvent> domainEvents = new HashSet<>();
@@ -86,109 +123,44 @@ public class Asset {
         this.version = 0;
     }
 
-    // Explicit getters (standard JavaBean style)
-    public CommonKernel.AssetId getId() { return id; }
-    public String getName() { return name; }
-    public AssetType getType() { return type; }
-    public CommonKernel.Criticality getCriticality() { return criticality; }
-    public CommonKernel.HealthIndex getHealthIndex() { return healthIndex; }
-    public int getRedundancyLevel() { return redundancyLevel; }
-    public CommonKernel.GeometryValueObject getGeometry() { return geometry; }
-    public CommonKernel.GridNodeId getGridNodeId() { return gridNodeId; }
-    public String getDescription() { return description; }
-    public Instant getInstalledAt() { return installedAt; }
-    public Instant getLastInspectedAt() { return lastInspectedAt; }
-    public Instant getCreatedAt() { return createdAt; }
-    public Instant getUpdatedAt() { return updatedAt; }
-    public int getVersion() { return version; }
-
-    // Fluent-style getters (for test compatibility)
-    public CommonKernel.AssetId id() { return id; }
-    public String name() { return name; }
-    public AssetType type() { return type; }
-    public CommonKernel.Criticality criticality() { return criticality; }
-    public CommonKernel.HealthIndex healthIndex() { return healthIndex; }
-    public int redundancyLevel() { return redundancyLevel; }
-    public CommonKernel.GeometryValueObject geometry() { return geometry; }
-    public String description() { return description; }
-    public Instant installedAt() { return installedAt; }
-    public Instant lastInspectedAt() { return lastInspectedAt; }
-    public int version() { return version; }
-    public CommonKernel.GridNodeId gridNodeId() { return gridNodeId; }
-
-    /**
-     * Update asset health index and record inspection time.
-     */
-    public void updateHealth(CommonKernel.HealthIndex newHealthIndex, Instant inspectedAt) {
-        this.healthIndex = Objects.requireNonNull(newHealthIndex);
-        this.lastInspectedAt = Objects.requireNonNull(inspectedAt);
+    public void updateGeometry(CommonKernel.GeometryValueObject geometry) {
+        this.geometry = Objects.requireNonNull(geometry, "Geometry cannot be null");
         this.updatedAt = Instant.now();
         this.version++;
     }
 
-    /**
-     * Update asset criticality (rare, requires authorization).
-     */
-    public void updateCriticality(CommonKernel.Criticality newCriticality) {
-        this.criticality = Objects.requireNonNull(newCriticality);
+    public void updateHealthIndex(CommonKernel.HealthIndex healthIndex) {
+        this.healthIndex = Objects.requireNonNull(healthIndex, "HealthIndex cannot be null");
         this.updatedAt = Instant.now();
         this.version++;
     }
 
-    /**
-     * Update asset geometry (e.g., after survey correction).
-     */
-    public void updateGeometry(CommonKernel.GeometryValueObject newGeometry) {
-        this.geometry = Objects.requireNonNull(newGeometry);
+    public void updateCriticality(CommonKernel.Criticality criticality) {
+        this.criticality = Objects.requireNonNull(criticality, "Criticality cannot be null");
         this.updatedAt = Instant.now();
         this.version++;
     }
 
-    /**
-     * Associate with a grid topology node.
-     */
-    public void associateWithGridNode(CommonKernel.GridNodeId gridNodeId) {
-        this.gridNodeId = Objects.requireNonNull(gridNodeId);
+    public void updateRedundancyLevel(int redundancyLevel) {
+        this.redundancyLevel = Math.max(0, redundancyLevel);
         this.updatedAt = Instant.now();
         this.version++;
     }
 
-    /**
-     * Check if asset is currently healthy.
-     */
-    public boolean isHealthy() {
-        return healthIndex.isHealthy();
-    }
-
-    /**
-     * Check if asset has any redundancy.
-     */
     public boolean hasRedundancy() {
         return redundancyLevel > 0;
     }
 
-    /**
-     * Get redundancy factor for risk calculations (0.0 = no redundancy, 1.0 = full N+1).
-     */
-    public double redundancyFactor() {
-        if (redundancyLevel <= 0) return 0.0;
-        return Math.min(1.0, redundancyLevel * 0.33); // Diminishing returns
-    }
-
-    /**
-     * Add a domain event to be published after transaction commits.
-     */
-    void addDomainEvent(CommonKernel.DomainEvent event) {
+    public void addDomainEvent(CommonKernel.DomainEvent event) {
         domainEvents.add(Objects.requireNonNull(event));
     }
 
-    /**
-     * Get and clear pending domain events.
-     */
-    public Set<CommonKernel.DomainEvent> popDomainEvents() {
-        Set<CommonKernel.DomainEvent> events = new HashSet<>(domainEvents);
+    public Set<CommonKernel.DomainEvent> getDomainEvents() {
+        return Collections.unmodifiableSet(domainEvents);
+    }
+
+    public void clearDomainEvents() {
         domainEvents.clear();
-        return Collections.unmodifiableSet(events);
     }
 
     @Override
@@ -213,7 +185,7 @@ public class Asset {
         private String name;
         private AssetType type;
         private CommonKernel.Criticality criticality;
-        private CommonKernel.HealthIndex healthIndex = CommonKernel.HealthIndex.healthy();
+        private CommonKernel.HealthIndex healthIndex;
         private int redundancyLevel = 0;
         private CommonKernel.GeometryValueObject geometry;
         private CommonKernel.GridNodeId gridNodeId;
@@ -234,27 +206,27 @@ public class Asset {
         }
 
         public Builder type(AssetType type) {
-            this.type = type;
+            this.type = Objects.requireNonNull(type);
             return this;
         }
 
         public Builder criticality(CommonKernel.Criticality criticality) {
-            this.criticality = criticality;
+            this.criticality = Objects.requireNonNull(criticality);
             return this;
         }
 
         public Builder healthIndex(CommonKernel.HealthIndex healthIndex) {
-            this.healthIndex = healthIndex;
+            this.healthIndex = Objects.requireNonNull(healthIndex);
             return this;
         }
 
         public Builder redundancyLevel(int redundancyLevel) {
-            this.redundancyLevel = redundancyLevel;
+            this.redundancyLevel = Math.max(0, redundancyLevel);
             return this;
         }
 
         public Builder geometry(CommonKernel.GeometryValueObject geometry) {
-            this.geometry = geometry;
+            this.geometry = Objects.requireNonNull(geometry);
             return this;
         }
 

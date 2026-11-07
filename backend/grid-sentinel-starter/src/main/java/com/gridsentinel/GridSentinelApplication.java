@@ -14,7 +14,11 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  * Implements the closed operational loop: PREVENT → DETECT → ASSESS → SIMULATE → MITIGATE → RECOVER → LEARN.
  * </p>
  */
-@SpringBootApplication(scanBasePackages = "com.gridsentinel")
+@SpringBootApplication(scanBasePackages = {
+        "com.gridsentinel.infrastructure",
+        "com.gridsentinel.application",
+        "com.gridsentinel.api"
+})
 @EntityScan(basePackages = {
         "com.gridsentinel.asset",
         "com.gridsentinel.grid",

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+    <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
+
+    <logger name="org.hibernate.type.descriptor.java" level="TRACE"/>
+    <logger name="org.hibernate.type" level="TRACE"/>
+    <logger name="org.hibernate.boot.model.process.internal.InferredBasicValueResolver" level="TRACE"/>
+    <logger name="org.hibernate.type.descriptor.java.EnumJavaType" level="TRACE"/>
+    <logger name="org.hibernate.boot.model.process.internal" level="TRACE"/>
+    <logger name="org.hibernate.mapping" level="TRACE"/>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+</configuration>
