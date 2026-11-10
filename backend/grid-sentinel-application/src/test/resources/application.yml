@@ -1,0 +1,60 @@
+spring:
+  application:
+    name: grid-sentinel
+  profiles:
+    active: test
+  datasource:
+    url: jdbc:h2:mem:grid_sentinel_test;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+    hikari:
+      maximum-pool-size: 10
+  flyway:
+    enabled: false
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.spatial.dialect.h2gis.H2GisDialect
+        format_sql: true
+        use_sql_comments: true
+        globally_quoted_identifiers: true
+        use_new_id_generator_mappings: true
+        jdbc:
+          lob:
+            non_contextual_creation: true
+        types:
+          enable_enum_ordinal_mapping: true
+        use_identifier_rollback: true
+        enable_lazy_load_no_trans: true
+        temp:
+          use_jdbc_metadata_defaults: false
+        hbm2ddl:
+          auto: create-drop
+        bytecode:
+          use_reflection_optimizer: false
+        order_inserts: true
+        order_updates: true
+        batch_versioned_data: true
+        cache:
+          use_second_level_cache: false
+
+app:
+  jwt:
+    secret: "grid-sentinel-test-secret-key-at-least-32-chars-long-for-hmac-sha256"
+    issuer: "grid-sentinel"
+    access-token-expiration: 3600
+    refresh-token-expiration: 604800
+
+server:
+  port: 0
+  servlet:
+    context-path: /api/v1
+
+logging:
+  level:
+    com.gridsentinel: DEBUG
+    org.springframework.web.socket: DEBUG
+    org.springframework.messaging: DEBUG
