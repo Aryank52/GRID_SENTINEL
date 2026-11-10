@@ -1,19 +1,43 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import maplibregl, { Map, LngLatBoundsLike, MapMouseEvent, FilterSpecification, MapGeoJSONFeature } from 'maplibre-gl';
+import maplibregl, { MapMouseEvent, FilterSpecification, MapGeoJSONFeature, LngLatBoundsLike } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import type { MapViewport, SelectedFeature, GeoJsonFeature } from '@spatial/spatial';
+
+// Local type definitions (normally from @spatial/spatial)
+interface MapViewport {
+  center: [number, number];
+  zoom: number;
+  bearing: number;
+  pitch: number;
+}
+
+export interface SelectedFeature {
+  id?: string | number;
+  type?: string;
+  geometry?: any;
+  properties?: Record<string, unknown>;
+  feature?: GeoJsonFeature;
+  layerId?: string;
+  sourceId?: string;
+}
+
+interface GeoJsonFeature<Properties = Record<string, unknown>> {
+  type: 'Feature';
+  id?: string;
+  geometry: any;
+  properties: Properties;
+}
 
 // Module-level store for map methods (singleton pattern for map instance)
 const mapMethodsStore = {
   current: null as null | {
     flyTo: (options: any) => void;
     setLayerVisibility: (layerId: string, visible: boolean) => void;
-    setLayerFilter: (layerId: string, filter: FilterSpecification) => void;
+    setLayerFilter: (layerId: string, filter: maplibregl.FilterSpecification) => void;
     getFeatureState: (sourceId: string, featureId: string | number) => any;
     setFeatureState: (sourceId: string, featureId: string | number, state: Record<string, unknown>) => void;
     removeFeatureState: (sourceId: string, featureId: string | number) => void;
     queryRenderedFeatures: (point: [number, number], options?: { layers?: string[] }) => any;
-    getMap: () => Map | null;
+    getMap: () => maplibregl.Map | null;
     addLayer: (layer: maplibregl.LayerSpecification, beforeId?: string) => void;
     removeLayer: (layerId: string) => void;
   },
@@ -27,7 +51,7 @@ interface MapLibreMapProps {
   /** Container className */
   className?: string;
   /** Callback when map is loaded */
-  onLoad?: (map: Map) => void;
+  onLoad?: (map: maplibregl.Map) => void;
   /** Callback when viewport changes (debounced) */
   onViewportChange?: (viewport: MapViewport) => void;
   /** Callback when a feature is clicked */
@@ -56,7 +80,7 @@ export function MapLibreMap({
   customAttribution,
 }: MapLibreMapProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<Map | null>(null);
+  const mapRef = useRef<maplibregl.Map | null>(null);
   const [isMapLoaded, setIsMapLoaded] = useState(false);
   const [mapError, setMapError] = useState<Error | null>(null);
   const viewportChangeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -73,7 +97,7 @@ export function MapLibreMap({
     }
 
     try {
-      const map = new Map({
+      const map = new (maplibregl as any).Map({
         container: mapContainerRef.current,
         style,
         center: initialViewport.center ?? [-98.5795, 39.8283], // Center of US
@@ -118,7 +142,7 @@ export function MapLibreMap({
       });
 
       // Error handling
-      map.on('error', (event) => {
+      map.on('error', (event: any) => {
         console.error('MapLibre error:', event.error);
         setMapError(event.error instanceof Error ? event.error : new Error(String(event.error)));
       });

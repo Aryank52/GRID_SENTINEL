@@ -8,7 +8,8 @@ import { DetailDrawer } from '../components/map/DetailDrawer';
 import { Legend } from '../components/map/Legend';
 import { useViewportSpatialData } from '../hooks/useSpatialData';
 import { useRealtimeEvents } from '../hooks/useRealtimeEvents';
-import type { FeatureType, SpatialQueryParams, GeoJsonFeature, SelectedFeature } from '@spatial/spatial';
+import type { FeatureType, SpatialQueryParams, GeoJsonFeature } from '@spatial/spatial';
+import type { SelectedFeature } from '../components/map/MapLibreMap';
 
 type LayerType = 'nodes' | 'edges' | 'assets' | 'threats' | 'incidents' | 'risk';
 
@@ -135,7 +136,9 @@ export function LiveGridMap() {
 
   // Handle feature selection
   const handleFeatureClick = useCallback((selectedFeature: SelectedFeature) => {
-    setSelectedFeature({ feature: selectedFeature.feature, type: selectedFeature.feature.properties?.type as FeatureType || 'unknown' });
+    const feature = selectedFeature.feature;
+    if (!feature) return;
+    setSelectedFeature({ feature, type: feature.properties?.type as FeatureType || 'unknown' });
   }, []);
 
   // Handle layer visibility toggle
