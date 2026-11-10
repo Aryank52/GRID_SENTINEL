@@ -2,6 +2,7 @@ package com.gridsentinel.infrastructure.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -20,6 +21,7 @@ import com.gridsentinel.auth.User;
 
 /**
  * Spring Security configuration with JWT-based authentication and RBAC.
+ * Provides separate filter chains for dev and prod profiles.
  */
 @Configuration
 @EnableWebSecurity
@@ -33,7 +35,8 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    @Profile("!prod")
+    public SecurityFilterChain devFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session
@@ -57,9 +60,51 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/simulations/**").hasAnyRole("SIMULATION_ENGINEER", "PLANNER", "INCIDENT_COMMANDER",
                                 "SUPERVISOR", "MANAGER", "ADMINISTRATOR")
                         .requestMatchers("/api/v1/response/**").hasAnyRole("INCIDENT_COMMANDER", "OPERATOR", "DISPATCHER",
-                                "RECOVERY_MANAGER", "SUPERVISOR", "MANAGER", "ADMINISTRATOR")
+                                "RECOVERY_MANAGER", "SUPERVISOR", "MANAGER", "DIRECTOR", "ADMINISTRATOR")
                         .requestMatchers("/api/v1/recovery/**").hasAnyRole("RECOVERY_MANAGER", "INCIDENT_COMMANDER",
-                                "OPERATOR", "SUPERVISOR", "MANAGER", "ADMINISTRATOR")
+                                "OPERATOR", "SUPERVISOR", "MANAGER", "DIRECTOR", "ADMINISTRATOR")
+                        .requestMatchers("/api/v1/protection/**").hasAnyRole("PLANNER", "RISK_ANALYST", "SUPERVISOR", "MANAGER", "DIRECTOR", "ADMINISTRATOR")
+                        .requestMatchers("/api/v1/copilot/**").hasAnyRole("OPERATOR", "DISPATCHER", "INCIDENT_COMMANDER",
+                                "RISK_ANALYST", "PLANNER", "SUPERVISOR", "MANAGER", "DIRECTOR", "ADMINISTRATOR", "VIEWER", "EXECUTIVE_VIEWER")
+                        .requestMatchers("/api/v1/audit/**").hasAnyRole("AUDITOR", "ADMINISTRATOR", "DIRECTOR")
+                        .requestMatchers("/actuator/**").hasRole("ADMINISTRATOR")
+                        .anyRequest().authenticated()
+                )
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
+    }
+
+    @Bean
+    @Profile("prod")
+    public SecurityFilterChain prodFilterChain(HttpSecurity http) throws Exception {
+        http
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/v1/auth/**", "/actuator/health", "/actuator/info",
+                                "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                        .requestMatchers("/api/spatial/**").permitAll()
+                        // Demo endpoints disabled in production
+                        .requestMatchers("/api/v1/dev/realtime/**").denyAll()
+                        .requestMatchers("/api/v1/assets/**").hasAnyRole("OPERATOR", "DISPATCHER", "INCIDENT_COMMANDER",
+                                "RISK_ANALYST", "PLANNER", "SUPERVISOR", "MANAGER", "DIRECTOR", "ADMINISTRATOR", "VIEWER", "EXECUTIVE_VIEWER")
+                        .requestMatchers("/api/v1/grid/**").hasAnyRole("OPERATOR", "DISPATCHER", "INCIDENT_COMMANDER",
+                                "PLANNER", "SIMULATION_ENGINEER", "SUPERVISOR", "MANAGER", "ADMINISTRATOR", "VIEWER")
+                        .requestMatchers("/api/v1/observations/**").hasAnyRole("OPERATOR", "DISPATCHER", "INCIDENT_COMMANDER",
+                                "RISK_ANALYST", "SECURITY_ANALYST", "SUPERVISOR", "MANAGER", "ADMINISTRATOR")
+                        .requestMatchers("/api/v1/risk/**").hasAnyRole("RISK_ANALYST", "PLANNER", "SUPERVISOR", "MANAGER", "DIRECTOR", "ADMINISTRATOR", "VIEWER", "EXECUTIVE_VIEWER")
+                        .requestMatchers("/api/v1/threats/**", "/api/v1/detection/**").hasAnyRole("OPERATOR", "DISPATCHER", "INCIDENT_COMMANDER",
+                                "SECURITY_ANALYST", "SUPERVISOR", "MANAGER", "ADMINISTRATOR")
+                        .requestMatchers("/api/v1/incidents/**").hasAnyRole("OPERATOR", "DISPATCHER", "INCIDENT_COMMANDER",
+                                "RECOVERY_MANAGER", "SUPERVISOR", "MANAGER", "DIRECTOR", "ADMINISTRATOR", "VIEWER", "EXECUTIVE_VIEWER")
+                        .requestMatchers("/api/v1/simulations/**").hasAnyRole("SIMULATION_ENGINEER", "PLANNER", "INCIDENT_COMMANDER",
+                                "SUPERVISOR", "MANAGER", "ADMINISTRATOR")
+                        .requestMatchers("/api/v1/response/**").hasAnyRole("INCIDENT_COMMANDER", "OPERATOR", "DISPATCHER",
+                                "RECOVERY_MANAGER", "SUPERVISOR", "MANAGER", "DIRECTOR", "ADMINISTRATOR")
+                        .requestMatchers("/api/v1/recovery/**").hasAnyRole("RECOVERY_MANAGER", "INCIDENT_COMMANDER",
+                                "OPERATOR", "SUPERVISOR", "MANAGER", "DIRECTOR", "ADMINISTRATOR")
                         .requestMatchers("/api/v1/protection/**").hasAnyRole("PLANNER", "RISK_ANALYST", "SUPERVISOR", "MANAGER", "DIRECTOR", "ADMINISTRATOR")
                         .requestMatchers("/api/v1/copilot/**").hasAnyRole("OPERATOR", "DISPATCHER", "INCIDENT_COMMANDER",
                                 "RISK_ANALYST", "PLANNER", "SUPERVISOR", "MANAGER", "DIRECTOR", "ADMINISTRATOR", "VIEWER", "EXECUTIVE_VIEWER")

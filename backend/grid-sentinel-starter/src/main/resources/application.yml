@@ -58,9 +58,9 @@ spring:
     activate:
       on-profile: prod
   datasource:
-    url: jdbc:postgresql://localhost:5432/grid_sentinel
-    username: grid_sentinel
-    password: grid_sentinel
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/grid_sentinel}
+    username: ${SPRING_DATASOURCE_USERNAME:grid_sentinel}
+    password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 20
@@ -85,24 +85,24 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:8080
+          issuer-uri: ${JWT_ISSUER_URI:http://localhost:8080}
   websocket:
-    allowed-origins: "http://localhost:5173,http://localhost:3000"
+    allowed-origins: ${WEBSOCKET_ALLOWED_ORIGINS:http://localhost:5173,http://localhost:3000}
 
 app:
   jwt:
-    secret: "grid-sentinel-development-secret-key-at-least-32-chars-long-for-hmac-sha256"
-    issuer: "grid-sentinel"
-    access-token-expiration: 3600
-    refresh-token-expiration: 604800
+    secret: ${APP_JWT_SECRET}
+    issuer: ${APP_JWT_ISSUER:grid-sentinel}
+    access-token-expiration: ${APP_JWT_ACCESS_TOKEN_EXPIRATION:3600}
+    refresh-token-expiration: ${APP_JWT_REFRESH_TOKEN_EXPIRATION:604800}
 
 server:
-  port: 8080
+  port: ${SERVER_PORT:8080}
   servlet:
     context-path: /api/v1
 
 logging:
   level:
-    com.gridsentinel: DEBUG
-    org.springframework.web.socket: DEBUG
-    org.springframework.messaging: DEBUG
+    com.gridsentinel: ${LOG_LEVEL_COM_GRIDSENTINEL:INFO}
+    org.springframework.web.socket: ${LOG_LEVEL_SPRING_WEBSOCKET:WARN}
+    org.springframework.messaging: ${LOG_LEVEL_SPRING_MESSAGING:WARN}
