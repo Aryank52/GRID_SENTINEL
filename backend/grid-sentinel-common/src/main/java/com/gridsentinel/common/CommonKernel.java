@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.ToString;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.Point;
@@ -426,8 +427,10 @@ public final class CommonKernel {
      * Wrapper for JTS Geometry to provide value semantics and validation.
      */
     @Getter
+    @Setter(AccessLevel.PROTECTED)
     @EqualsAndHashCode
     @ToString
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
     public static final class GeometryValueObject implements Serializable {
         Geometry geometry;
 

@@ -1,6 +1,7 @@
 package com.gridsentinel.response;
 
 import com.gridsentinel.common.CommonKernel;
+import com.gridsentinel.common.ResponsePriority;
 import com.gridsentinel.incident.Incident;
 import org.junit.jupiter.api.Test;
 
@@ -58,7 +59,7 @@ class ResponsePlanTest {
                 .name("Deploy team")
                 .description("Deploy fire suppression team")
                 .type(ResponseAction.ActionType.DEPLOY_CREW)
-                .priority(CommonKernel.ResponsePriority.HIGH)
+                .priority(ResponsePriority.HIGH)
                 .build();
 
         int oldVersion = plan.getVersion();
@@ -81,7 +82,7 @@ class ResponsePlanTest {
                 .name("Deploy team")
                 .description("Deploy fire suppression team")
                 .type(ResponseAction.ActionType.DEPLOY_CREW)
-                .priority(CommonKernel.ResponsePriority.HIGH)
+                .priority(ResponsePriority.HIGH)
                 .build();
 
         plan.addAction(action);
@@ -107,7 +108,7 @@ class ResponsePlanTest {
                 .name("Deploy team")
                 .description("Deploy fire suppression team")
                 .type(ResponseAction.ActionType.DEPLOY_CREW)
-                .priority(CommonKernel.ResponsePriority.HIGH)
+                .priority(ResponsePriority.HIGH)
                 .build();
 
         plan.addAction(action);
@@ -119,7 +120,7 @@ class ResponsePlanTest {
                 .name("Deploy team 2")
                 .description("Deploy fire suppression team 2")
                 .type(ResponseAction.ActionType.DEPLOY_CREW)
-                .priority(CommonKernel.ResponsePriority.HIGH)
+                .priority(ResponsePriority.HIGH)
                 .build();
 
         assertThatThrownBy(() -> plan.addAction(newAction))
@@ -139,7 +140,7 @@ class ResponsePlanTest {
                 .name("Deploy team")
                 .description("Deploy fire suppression team")
                 .type(ResponseAction.ActionType.DEPLOY_CREW)
-                .priority(CommonKernel.ResponsePriority.HIGH)
+                .priority(ResponsePriority.HIGH)
                 .build();
 
         plan.addAction(action);
@@ -178,7 +179,7 @@ class ResponsePlanTest {
                 .name("Deploy team")
                 .description("Deploy fire suppression team")
                 .type(ResponseAction.ActionType.DEPLOY_CREW)
-                .priority(CommonKernel.ResponsePriority.HIGH)
+                .priority(ResponsePriority.HIGH)
                 .build();
 
         plan.addAction(action);
@@ -187,7 +188,7 @@ class ResponsePlanTest {
 
         plan.start();
 
-        assertThat(plan.getStatus()).isEqualTo(ResponsePlan.PlanStatus.ACTIVE);
+        assertThat(plan.getStatus()).isEqualTo(ResponsePlan.PlanStatus.EXECUTING);
         assertThat(plan.getStartedAt()).isNotNull();
         assertThat(plan.getVersion()).isEqualTo(oldVersion + 1);
     }
@@ -205,7 +206,7 @@ class ResponsePlanTest {
                 .name("Deploy team")
                 .description("Deploy fire suppression team")
                 .type(ResponseAction.ActionType.DEPLOY_CREW)
-                .priority(CommonKernel.ResponsePriority.HIGH)
+                .priority(ResponsePriority.HIGH)
                 .build();
 
         plan.addAction(action);
@@ -237,7 +238,7 @@ class ResponsePlanTest {
                 .name("Deploy team")
                 .description("Deploy fire suppression team")
                 .type(ResponseAction.ActionType.DEPLOY_CREW)
-                .priority(CommonKernel.ResponsePriority.HIGH)
+                .priority(ResponsePriority.HIGH)
                 .build();
 
         plan.addAction(action);
@@ -262,7 +263,7 @@ class ResponsePlanTest {
                 .name("Low priority")
                 .description("Low")
                 .type(ResponseAction.ActionType.DEPLOY_CREW)
-                .priority(CommonKernel.ResponsePriority.LOW)
+                .priority(ResponsePriority.LOW)
                 .build();
 
         ResponseAction action2 = ResponseAction.builder()
@@ -270,7 +271,7 @@ class ResponsePlanTest {
                 .name("High priority")
                 .description("High")
                 .type(ResponseAction.ActionType.DEPLOY_CREW)
-                .priority(CommonKernel.ResponsePriority.HIGH)
+                .priority(ResponsePriority.HIGH)
                 .build();
 
         ResponseAction action3 = ResponseAction.builder()
@@ -278,7 +279,7 @@ class ResponsePlanTest {
                 .name("Critical priority")
                 .description("Critical")
                 .type(ResponseAction.ActionType.DEPLOY_CREW)
-                .priority(CommonKernel.ResponsePriority.IMMEDIATE)
+                .priority(ResponsePriority.IMMEDIATE)
                 .build();
 
         plan.addAction(action1);
@@ -287,9 +288,9 @@ class ResponsePlanTest {
 
         List<ResponseAction> actionsByPriority = plan.getActionsByPriority();
         assertThat(actionsByPriority).hasSize(3);
-        assertThat(actionsByPriority.get(0).getPriority()).isEqualTo(CommonKernel.ResponsePriority.IMMEDIATE);
-        assertThat(actionsByPriority.get(1).getPriority()).isEqualTo(CommonKernel.ResponsePriority.HIGH);
-        assertThat(actionsByPriority.get(2).getPriority()).isEqualTo(CommonKernel.ResponsePriority.LOW);
+        assertThat(actionsByPriority.get(0).getPriority()).isEqualTo(ResponsePriority.IMMEDIATE);
+        assertThat(actionsByPriority.get(1).getPriority()).isEqualTo(ResponsePriority.HIGH);
+        assertThat(actionsByPriority.get(2).getPriority()).isEqualTo(ResponsePriority.LOW);
     }
 
     @Test

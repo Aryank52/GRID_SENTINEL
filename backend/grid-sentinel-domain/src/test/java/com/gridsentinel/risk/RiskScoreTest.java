@@ -1,6 +1,7 @@
 package com.gridsentinel.risk;
 
 import com.gridsentinel.common.CommonKernel;
+import com.gridsentinel.common.RiskBand;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -31,7 +32,7 @@ class RiskScoreTest {
         assertThat(score.getId()).isEqualTo(id);
         assertThat(score.getAssetId()).isEqualTo(assetId);
         assertThat(score.getScore()).isEqualTo(0.75);
-        assertThat(score.getBand()).isEqualTo(CommonKernel.RiskBand.HIGH);
+        assertThat(score.getBand()).isEqualTo(RiskBand.HIGH);
         assertThat(score.getModelName()).isEqualTo("Thermal-Imaging-ML-v3");
         assertThat(score.getModelVersion()).isEqualTo("1.0");
         assertThat(score.getFactorBreakdown()).isNotNull();
@@ -99,7 +100,7 @@ class RiskScoreTest {
                 .factorBreakdown(factorBreakdown)
                 .build();
 
-        assertThat(score.getBand()).isEqualTo(CommonKernel.RiskBand.fromScore(score.getScore()));
+        assertThat(score.getBand()).isEqualTo(RiskBand.fromScore(score.getScore()));
     }
 
     @Test

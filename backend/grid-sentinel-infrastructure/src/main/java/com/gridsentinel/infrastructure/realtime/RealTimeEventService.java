@@ -18,6 +18,11 @@ import com.gridsentinel.response.PlanStatus;
 import com.gridsentinel.recovery.RecoveryState;
 import com.gridsentinel.recovery.RecoveryPhase;
 import com.gridsentinel.asset.Asset;
+import com.gridsentinel.event.RecoveryInitializedEvent;
+import com.gridsentinel.event.MilestoneAssignedEvent;
+import com.gridsentinel.event.MilestoneStartedEvent;
+import com.gridsentinel.event.MilestoneCompletedEvent;
+import com.gridsentinel.event.RecoveryCompletedEvent;
 
 import java.time.Instant;
 import java.util.Set;
@@ -239,7 +244,7 @@ public class RealTimeEventService {
         if (plan == null || action == null) return;
         
         CorrelationId correlationId = plan.getCorrelationId() != null 
-                ? CommonKernel.CorrelationId.of(plan.getCorrelationId()) 
+                ? plan.getCorrelationId() 
                 : CorrelationId.generate();
 
         com.gridsentinel.event.ResponsePlanUpdatedEvent event = new com.gridsentinel.event.ResponsePlanUpdatedEvent(
@@ -290,6 +295,136 @@ public class RealTimeEventService {
                 "recovery-management"
         );
 
+        realTimePublisher.publish(event, correlationId);
+    }
+
+    /**
+     * Publishes a RecoveryInitializedEvent when recovery is initialized.
+     */
+    public void publishRecoveryInitialized(com.gridsentinel.recovery.RecoveryState recovery,
+                                            com.gridsentinel.incident.Incident incident) {
+        if (recovery == null) return;
+        
+        CorrelationId correlationId = recovery.getCorrelationId() != null 
+                ? recovery.getCorrelationId() 
+                : CorrelationId.generate();
+        
+        com.gridsentinel.event.RecoveryInitializedEvent event = new com.gridsentinel.event.RecoveryInitializedEvent(
+                correlationId,
+                recovery.getId().toString(),
+                recovery.getIncidentId() != null ? recovery.getIncidentId().toString() : null,
+                recovery.getPhase() != null ? recovery.getPhase().name() : null,
+                recovery.getOverallProgress(),
+                recovery.getRecoveryManagerId() != null ? recovery.getRecoveryManagerId().toString() : null,
+                "recovery-management"
+        );
+        
+        realTimePublisher.publish(event, correlationId);
+    }
+
+    /**
+     * Publishes a MilestoneAssignedEvent when a milestone is assigned.
+     */
+    public void publishMilestoneAssigned(com.gridsentinel.recovery.RecoveryState recovery,
+                                          String milestoneId,
+                                          String milestoneName,
+                                          String operatorId) {
+        if (recovery == null) return;
+        
+        CorrelationId correlationId = recovery.getCorrelationId() != null 
+                ? recovery.getCorrelationId() 
+                : CorrelationId.generate();
+        
+        com.gridsentinel.event.MilestoneAssignedEvent event = new com.gridsentinel.event.MilestoneAssignedEvent(
+                correlationId,
+                recovery.getId().toString(),
+                recovery.getIncidentId() != null ? recovery.getIncidentId().toString() : null,
+                milestoneId,
+                milestoneName,
+                operatorId,
+                "recovery-management"
+        );
+        
+        realTimePublisher.publish(event, correlationId);
+    }
+
+    /**
+     * Publishes a MilestoneStartedEvent when a milestone is started.
+     */
+    public void publishMilestoneStarted(com.gridsentinel.recovery.RecoveryState recovery,
+                                         String milestoneId,
+                                         String milestoneName,
+                                         String operatorId) {
+        if (recovery == null) return;
+        
+        CorrelationId correlationId = recovery.getCorrelationId() != null 
+                ? recovery.getCorrelationId() 
+                : CorrelationId.generate();
+        
+        com.gridsentinel.event.MilestoneStartedEvent event = new com.gridsentinel.event.MilestoneStartedEvent(
+                correlationId,
+                recovery.getId().toString(),
+                recovery.getIncidentId() != null ? recovery.getIncidentId().toString() : null,
+                milestoneId,
+                milestoneName,
+                operatorId,
+                "recovery-management"
+        );
+        
+        realTimePublisher.publish(event, correlationId);
+    }
+
+    /**
+     * Publishes a MilestoneCompletedEvent when a milestone is completed.
+     */
+    public void publishMilestoneCompleted(com.gridsentinel.recovery.RecoveryState recovery,
+                                           String milestoneId,
+                                           String milestoneName,
+                                           String operatorId,
+                                           boolean milestoneCompleted) {
+        if (recovery == null) return;
+        
+        CorrelationId correlationId = recovery.getCorrelationId() != null 
+                ? recovery.getCorrelationId() 
+                : CorrelationId.generate();
+        
+        com.gridsentinel.event.MilestoneCompletedEvent event = new com.gridsentinel.event.MilestoneCompletedEvent(
+                correlationId,
+                recovery.getId().toString(),
+                recovery.getIncidentId() != null ? recovery.getIncidentId().toString() : null,
+                milestoneId,
+                milestoneName,
+                operatorId,
+                milestoneCompleted,
+                "recovery-management"
+        );
+        
+        realTimePublisher.publish(event, correlationId);
+    }
+
+    /**
+     * Publishes a RecoveryCompletedEvent when recovery is completed.
+     */
+    public void publishRecoveryCompleted(com.gridsentinel.recovery.RecoveryState recovery,
+                                          com.gridsentinel.common.CommonKernel.IncidentId incidentId,
+                                          String actorId,
+                                          String reason) {
+        if (recovery == null) return;
+        
+        CorrelationId correlationId = recovery.getCorrelationId() != null 
+                ? recovery.getCorrelationId() 
+                : CorrelationId.generate();
+        
+        com.gridsentinel.event.RecoveryCompletedEvent event = new com.gridsentinel.event.RecoveryCompletedEvent(
+                correlationId,
+                recovery.getId().toString(),
+                recovery.getIncidentId() != null ? recovery.getIncidentId().toString() : null,
+                incidentId != null ? incidentId.toString() : null,
+                actorId,
+                reason,
+                "recovery-management"
+        );
+        
         realTimePublisher.publish(event, correlationId);
     }
 
@@ -512,6 +647,118 @@ public class RealTimeEventService {
                 newRiskBand,
                 changeReason,
                 "asset-management"
+        );
+
+        realTimePublisher.publish(event, correlationId);
+    }
+
+    // =========================================================================
+    // Additional Simplified Methods for Demo/Testing (Missing Event Types)
+    // =========================================================================
+
+    /**
+     * Simplified publishThreatEscalated for demo/testing with string parameters.
+     */
+    public void publishThreatEscalated(String threatEventId,
+                                        String previousSeverity,
+                                        String newSeverity,
+                                        String escalationReason) {
+        CorrelationId correlationId = CorrelationId.generate();
+
+        com.gridsentinel.event.ThreatEscalatedEvent event = new com.gridsentinel.event.ThreatEscalatedEvent(
+                correlationId,
+                threatEventId,
+                previousSeverity,
+                newSeverity,
+                escalationReason,
+                "threat-pipeline"
+        );
+
+        realTimePublisher.publish(event, correlationId);
+    }
+
+    /**
+     * Simplified publishSimulationCompleted for demo/testing with string parameters.
+     */
+    public void publishSimulationCompleted(String simulationId,
+                                            String name,
+                                            String scenarioId,
+                                            String status,
+                                            String strategyName,
+                                            String strategyVersion,
+                                            Long randomSeed,
+                                            String errorMessage) {
+        CorrelationId correlationId = CorrelationId.generate();
+
+        com.gridsentinel.event.SimulationCompletedEvent event = new com.gridsentinel.event.SimulationCompletedEvent(
+                correlationId,
+                simulationId,
+                name,
+                scenarioId,
+                status,
+                strategyName,
+                strategyVersion,
+                randomSeed != null ? randomSeed : 0L,
+                errorMessage,
+                "simulation-engine"
+        );
+
+        realTimePublisher.publish(event, correlationId);
+    }
+
+    /**
+     * Simplified publishResponsePlanUpdated for demo/testing with string parameters.
+     */
+    public void publishResponsePlanUpdated(String responsePlanId,
+                                            String incidentId,
+                                            String name,
+                                            String previousStatus,
+                                            String newStatus,
+                                            String actorId,
+                                            String action) {
+        CorrelationId correlationId = CorrelationId.generate();
+
+        com.gridsentinel.event.ResponsePlanUpdatedEvent event = new com.gridsentinel.event.ResponsePlanUpdatedEvent(
+                correlationId,
+                responsePlanId,
+                incidentId,
+                name,
+                previousStatus,
+                newStatus,
+                actorId,
+                action,
+                "response-planning"
+        );
+
+        realTimePublisher.publish(event, correlationId);
+    }
+
+    /**
+     * Simplified publishRecoveryProgressUpdated for demo/testing with string parameters.
+     */
+    public void publishRecoveryProgressUpdated(String recoveryStateId,
+                                                String incidentId,
+                                                String previousPhase,
+                                                String newPhase,
+                                                double previousProgress,
+                                                double newProgress,
+                                                String milestoneId,
+                                                String milestoneName,
+                                                Boolean milestoneCompleted) {
+        CorrelationId correlationId = CorrelationId.generate();
+
+        com.gridsentinel.event.RecoveryProgressUpdatedEvent event = new com.gridsentinel.event.RecoveryProgressUpdatedEvent(
+                correlationId,
+                recoveryStateId,
+                incidentId,
+                previousPhase,
+                newPhase,
+                previousProgress,
+                newProgress,
+                milestoneId,
+                milestoneName,
+                milestoneCompleted != null ? milestoneCompleted : false,
+                "recovery-management"
         );
 
         realTimePublisher.publish(event, correlationId);

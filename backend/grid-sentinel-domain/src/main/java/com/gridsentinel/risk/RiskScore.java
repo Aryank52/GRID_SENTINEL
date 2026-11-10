@@ -102,7 +102,8 @@ public class RiskScore {
         if (this.score < 0.0 || this.score > 1.0) {
             throw new IllegalArgumentException("Score must be in [0.0, 1.0]");
         }
-        this.band = Objects.requireNonNull(builder.band, "Band cannot be null");
+        // Compute band from score if not explicitly provided
+        this.band = builder.band != null ? builder.band : RiskBand.fromScore(this.score);
         // Validate band consistency
         RiskBand expectedBand = RiskBand.fromScore(this.score);
         if (this.band != expectedBand) {

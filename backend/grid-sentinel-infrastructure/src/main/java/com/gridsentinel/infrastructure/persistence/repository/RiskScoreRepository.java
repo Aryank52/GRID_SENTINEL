@@ -23,8 +23,8 @@ public interface RiskScoreRepository extends JpaRepository<RiskScore, CommonKern
      */
     @Query(value = """
         SELECT rs FROM RiskScore rs
-        JOIN rs.assetId a
-        WHERE a.geometry.geometry && :envelope
+        JOIN Asset a ON rs.assetId = a.id
+        WHERE ST_Intersects(a.geometry.geometry, :envelope)
         AND rs.computedAt = (
             SELECT MAX(rs2.computedAt) FROM RiskScore rs2 WHERE rs2.assetId = a.id
         )
@@ -36,8 +36,8 @@ public interface RiskScoreRepository extends JpaRepository<RiskScore, CommonKern
      */
     @Query(value = """
         SELECT rs FROM RiskScore rs
-        JOIN rs.assetId a
-        WHERE a.geometry.geometry && :envelope
+        JOIN Asset a ON rs.assetId = a.id
+        WHERE ST_Intersects(a.geometry.geometry, :envelope)
         AND rs.band = :band
         AND rs.computedAt = (
             SELECT MAX(rs2.computedAt) FROM RiskScore rs2 WHERE rs2.assetId = a.id
@@ -51,8 +51,8 @@ public interface RiskScoreRepository extends JpaRepository<RiskScore, CommonKern
      */
     @Query(value = """
         SELECT rs FROM RiskScore rs
-        JOIN rs.assetId a
-        WHERE a.geometry.geometry && :envelope
+        JOIN Asset a ON rs.assetId = a.id
+        WHERE ST_Intersects(a.geometry.geometry, :envelope)
         AND rs.score BETWEEN :minScore AND :maxScore
         AND rs.computedAt = (
             SELECT MAX(rs2.computedAt) FROM RiskScore rs2 WHERE rs2.assetId = a.id
@@ -81,4 +81,9 @@ public interface RiskScoreRepository extends JpaRepository<RiskScore, CommonKern
         ORDER BY rs.computedAt DESC
         """)
     Optional<RiskScore> findTopByAssetIdOrderByComputedAtDesc(@Param("assetId") CommonKernel.AssetId assetId);
+
+    /**
+     * Find latest risk score for a specific asset (alias for findTopByAssetIdOrderByComputedAtDesc).
+     */
+    Optional<RiskScore> findLatestRiskScoreByAssetId(@Param("assetId") CommonKernel.AssetId assetId);
 }

@@ -23,7 +23,12 @@ public abstract sealed class GridEvent<P> permits
         SimulationCompletedEvent,
         ResponsePlanUpdatedEvent,
         RecoveryProgressUpdatedEvent,
-        GridAssetStatusChangedEvent {
+        GridAssetStatusChangedEvent,
+        RecoveryInitializedEvent,
+        MilestoneAssignedEvent,
+        MilestoneStartedEvent,
+        MilestoneCompletedEvent,
+        RecoveryCompletedEvent {
 
     private final String eventId;
     private final Instant occurredAt;
@@ -53,8 +58,8 @@ public abstract sealed class GridEvent<P> permits
         this.eventId = eventId;
         this.occurredAt = occurredAt;
         this.correlationId = Objects.requireNonNull(correlationId);
-        this.aggregateType = aggregateType;
-        this.aggregateId = aggregateId;
+        this.aggregateType = Objects.requireNonNull(aggregateType);
+        this.aggregateId = Objects.requireNonNull(aggregateId);
         this.version = version;
         this.severity = severity;
         this.source = source;

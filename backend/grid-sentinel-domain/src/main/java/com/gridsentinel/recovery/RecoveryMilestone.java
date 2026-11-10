@@ -1,7 +1,11 @@
 package com.gridsentinel.recovery;
 
 import com.gridsentinel.common.CommonKernel;
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.AttributeOverrides;
+import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.NotNull;
@@ -27,6 +31,7 @@ import java.util.UUID;
 public final class RecoveryMilestone {
 
     @NotNull
+    @Column(name = "milestone_id")
     @Setter(AccessLevel.PRIVATE)
     private String id;
 
@@ -50,15 +55,31 @@ public final class RecoveryMilestone {
     @Setter(AccessLevel.PRIVATE)
     private Integer sequenceOrder;
 
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "value", column = @Column(name = "target_asset_id", columnDefinition = "uuid"))
+    })
     @Setter(AccessLevel.PRIVATE)
     private CommonKernel.AssetId targetAssetId;
 
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "value", column = @Column(name = "target_grid_node_id", columnDefinition = "uuid"))
+    })
     @Setter(AccessLevel.PRIVATE)
     private CommonKernel.GridNodeId targetGridNodeId;
 
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "value", column = @Column(name = "assigned_to", columnDefinition = "uuid"))
+    })
     @Setter(AccessLevel.PRIVATE)
     private CommonKernel.UserId assignedTo;
 
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "value", column = @Column(name = "verified_by", columnDefinition = "uuid"))
+    })
     @Setter(AccessLevel.PRIVATE)
     private CommonKernel.UserId verifiedBy;
 

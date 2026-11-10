@@ -22,7 +22,7 @@ public interface IncidentRepository extends JpaRepository<Incident, CommonKernel
      */
     @Query(value = """
         SELECT i FROM Incident i
-        WHERE i.location.geometry && :envelope
+        WHERE ST_Intersects(i.location.geometry, :envelope)
         """)
     List<Incident> findByBbox(@Param("envelope") Envelope envelope);
 
@@ -31,7 +31,7 @@ public interface IncidentRepository extends JpaRepository<Incident, CommonKernel
      */
     @Query(value = """
         SELECT i FROM Incident i
-        WHERE i.location.geometry && :envelope
+        WHERE ST_Intersects(i.location.geometry, :envelope)
         AND i.state = :state
         """)
     List<Incident> findByBboxAndState(@Param("envelope") Envelope envelope,
@@ -42,7 +42,7 @@ public interface IncidentRepository extends JpaRepository<Incident, CommonKernel
      */
     @Query(value = """
         SELECT i FROM Incident i
-        WHERE i.location.geometry && :envelope
+        WHERE ST_Intersects(i.location.geometry, :envelope)
         AND i.severity = :severity
         """)
     List<Incident> findByBboxAndSeverity(@Param("envelope") Envelope envelope,
@@ -53,15 +53,15 @@ public interface IncidentRepository extends JpaRepository<Incident, CommonKernel
      */
     @Query(value = """
         SELECT i FROM Incident i
-        WHERE i.location.geometry && :envelope
+        WHERE ST_Intersects(i.location.geometry, :envelope)
         AND i.state IN ('DETECTED', 'TRIAGED', 'CONFIRMED', 'ACTIVE_RESPONSE', 'CONTAINED', 'RECOVERING')
         """)
     List<Incident> findActiveByBbox(@Param("envelope") Envelope envelope);
 
     /**
-     * Find incident by ID with geometry.
+     * Find incident by ID.
      */
-    Optional<Incident> findByIdWithGeometry(CommonKernel.IncidentId id);
+    Optional<Incident> findById(CommonKernel.IncidentId id);
 
     /**
      * Find incident by incident number.
@@ -73,7 +73,28 @@ public interface IncidentRepository extends JpaRepository<Incident, CommonKernel
      */
     @Query(value = """
         SELECT COUNT(i) FROM Incident i
-        WHERE i.location.geometry && :envelope
+        WHERE ST_Intersects(i.location.geometry, :envelope)
         """)
     long countByBbox(@Param("envelope") Envelope envelope);
+
+    /**
+     * Find active incident for a specific asset.
+     */
+    @Query(value = """
+        SELECT i FROM Incident i
+        WHERE i.primaryAssetId = :assetId
+        AND i.state IN ('DETECTED', 'TRIAGED', 'CONFIRMED', 'ACTIVE_RESPONSE', 'CONTAINED', 'RECOVERING')
+        ORDER BY i.detectedAt DESC
+        """)
+    Optional<Incident> findActiveByAssetId(@Param("assetId") CommonKernel.AssetId assetId);
+
+    /**
+     * Find incident by originating threat ID.
+     */
+    @Query(value = """
+        SELECT i FROM Incident i
+        WHERE i.originatingThreatId = :threatId
+        ORDER BY i.detectedAt DESC
+        """)
+    Optional<Incident> findByOriginatingThreatId(@Param("threatId") CommonKernel.ThreatEventId threatId);
 }

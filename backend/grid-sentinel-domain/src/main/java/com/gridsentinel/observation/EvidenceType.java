@@ -2,46 +2,65 @@ package com.gridsentinel.observation;
 
 /**
  * Type of evidence extracted from an observation.
+ * Each type has an associated severity level for threat detection.
  */
 public enum EvidenceType {
     // Thermal
-    TEMPERATURE_ANOMALY,        // Degrees C above ambient
-    HOTSPOT_DETECTED,           // Normalized intensity
-    THERMAL_GRADIENT,           // Degrees C per meter
+    TEMPERATURE_ANOMALY,
+    HOTSPOT_DETECTED,
+    THERMAL_GRADIENT,
+    THERMAL_DELTA,
 
     // Visual
-    SMOKE_DETECTED,             // Normalized confidence
-    FIRE_DETECTED,              // Normalized confidence
-    VEGETATION_ENCROACHMENT,    // Distance to conductor (meters)
-    STRUCTURAL_DAMAGE,          // Normalized severity
-    CONDUCTOR_SAG,              // Meters below design
-    CORROSION_DETECTED,         // Normalized severity
-    INSULATOR_DAMAGE,           // Normalized severity
-    FOREIGN_OBJECT,             // Normalized confidence
+    SMOKE_DETECTED,
+    FIRE_DETECTED,
+    VEGETATION_ENCROACHMENT,
+    STRUCTURAL_DAMAGE,
+    CONDUCTOR_SAG,
+    CORROSION_DETECTED,
+    INSULATOR_DAMAGE,
+    FOREIGN_OBJECT,
+    STRUCTURAL_CORROSION,
 
     // GIS / Spatial
-    FLOOD_PROXIMITY,            // Meters to flood zone
-    LANDSLIDE_RISK_ZONE,        // Normalized risk
-    SEISMIC_ZONE,               // PGA (peak ground acceleration)
-    WILDFIRE_PERIMETER,         // Meters to fire perimeter
+    FLOOD_PROXIMITY,
+    LANDSLIDE_RISK_ZONE,
+    SEISMIC_ZONE,
+    WILDFIRE_PERIMETER,
+    LANDSLIDE_RISK,
 
     // Weather
-    WIND_SPEED,                 // m/s
-    WIND_GUST,                  // m/s
-    LIGHTNING_STRIKE_PROXIMITY, // Meters
-    PRECIPITATION_RATE,         // mm/hr
-    TEMPERATURE_EXTREME,        // Degrees C
+    WIND_SPEED,
+    WIND_GUST,
+    LIGHTNING_STRIKE_PROXIMITY,
+    PRECIPITATION_RATE,
+    TEMPERATURE_EXTREME,
+    EXTREME_WIND,
+    HIGH_HUMIDITY,
 
     // SCADA / Telemetry
-    CURRENT_OVERLOAD,           // % of thermal rating
-    VOLTAGE_DEVIATION,          // % from nominal
-    FREQUENCY_DEVIATION,        // Hz from nominal
-    POWER_SWING,                // Normalized magnitude
-    PROTECTION_OPERATION,       // Binary (0/1)
-    COMMUNICATION_LOSS,         // Duration seconds
+    CURRENT_OVERLOAD,
+    VOLTAGE_DEVIATION,
+    FREQUENCY_DEVIATION,
+    POWER_SWING,
+    PROTECTION_OPERATION,
+    COMMUNICATION_LOSS,
 
     // Inspection
-    INSPECTION_FINDING,         // Normalized severity
-    MAINTENANCE_OVERDUE,        // Days overdue
-    CONDITION_ASSESSMENT        // Normalized health score
+    INSPECTION_FINDING,
+    MAINTENANCE_OVERDUE,
+    CONDITION_ASSESSMENT,
+
+    // Security / Physical
+    PHYSICAL_INTRUSION,
+    CYBER_INTRUSION,
+    GAS_LEAK,
+    MECHANICAL_ANOMALY,
+
+    // Fire / Environmental
+    FIRE,
+    FLOODING,
+
+    // Other
+    UNKNOWN_ANOMALY;
 }

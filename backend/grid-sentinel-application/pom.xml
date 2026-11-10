@@ -98,7 +98,6 @@
             <groupId>com.gridsentinel</groupId>
             <artifactId>grid-sentinel-infrastructure</artifactId>
             <version>${project.version}</version>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

@@ -2,9 +2,12 @@ package com.gridsentinel.response;
 
 import com.gridsentinel.common.CommonKernel;
 import com.gridsentinel.common.ResponsePriority;
-import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.AttributeOverrides;
+import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Embeddable;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Transient;
@@ -15,6 +18,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.experimental.Accessors;
 
 import java.time.Instant;
 import java.util.Collections;
@@ -30,12 +34,16 @@ import java.util.UUID;
 @Embeddable
 @Getter
 @ToString
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor(access = AccessLevel.PROTECTED, force = true)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ResponseAction {
 
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "value", column = @Column(name = "action_id", columnDefinition = "uuid"))
+    })
     @Setter(AccessLevel.PRIVATE)
-    private UUID id;
+    private CommonKernel.ResponseActionId id;
 
     @NotNull
     @Setter(AccessLevel.PRIVATE)
@@ -59,21 +67,38 @@ public final class ResponseAction {
     @Setter(AccessLevel.PRIVATE)
     private ActionStatus status = ActionStatus.PENDING;
 
-    @Transient
+    @Convert(converter = ResponseActionIdSetConverter.class)
+    @Column(name = "depends_on", length = 4000)
     @Setter(AccessLevel.PRIVATE)
-    private Set<UUID> dependsOn = new HashSet<>();
+    private Set<CommonKernel.ResponseActionId> dependsOn = new HashSet<>();
 
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "value", column = @Column(name = "target_asset_id", columnDefinition = "uuid"))
+    })
     @Setter(AccessLevel.PRIVATE)
-    private UUID targetAssetId;
+    private CommonKernel.AssetId targetAssetId;
 
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "value", column = @Column(name = "target_grid_node_id", columnDefinition = "uuid"))
+    })
     @Setter(AccessLevel.PRIVATE)
-    private UUID targetGridNodeId;
+    private CommonKernel.GridNodeId targetGridNodeId;
 
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "value", column = @Column(name = "assigned_to", columnDefinition = "uuid"))
+    })
     @Setter(AccessLevel.PRIVATE)
-    private UUID assignedTo;
+    private CommonKernel.UserId assignedTo;
 
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "value", column = @Column(name = "reported_by", columnDefinition = "uuid"))
+    })
     @Setter(AccessLevel.PRIVATE)
-    private UUID reportedBy;
+    private CommonKernel.UserId reportedBy;
 
     @Setter(AccessLevel.PRIVATE)
     private Instant plannedStartAt;
@@ -90,34 +115,38 @@ public final class ResponseAction {
     @Setter(AccessLevel.PRIVATE)
     private String resultNotes;
 
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "value", column = @Column(name = "correlation_id", columnDefinition = "uuid"))
+    })
     @Setter(AccessLevel.PRIVATE)
-    private UUID correlationId;
+    private CommonKernel.CorrelationId correlationId;
 
     private ResponseAction(Builder builder) {
-        this.id = builder.id != null ? builder.id : UUID.randomUUID();
+        this.id = builder.id != null ? builder.id : CommonKernel.ResponseActionId.generate();
         this.name = Objects.requireNonNull(builder.name, "Name cannot be null");
         this.description = builder.description;
         this.type = Objects.requireNonNull(builder.type, "Action type cannot be null");
         this.priority = Objects.requireNonNull(builder.priority, "Priority cannot be null");
-        this.dependsOn = builder.dependsOn != null ? Set.copyOf(builder.dependsOn) : new HashSet<>();
+        this.dependsOn = builder.dependsOn != null ? new HashSet<>(builder.dependsOn) : new HashSet<>();
         this.targetAssetId = builder.targetAssetId;
         this.targetGridNodeId = builder.targetGridNodeId;
         this.assignedTo = builder.assignedTo;
         this.reportedBy = builder.reportedBy;
         this.plannedStartAt = builder.plannedStartAt;
         this.plannedEndAt = builder.plannedEndAt;
-        this.correlationId = builder.correlationId != null ? builder.correlationId : UUID.randomUUID();
+        this.correlationId = builder.correlationId != null ? builder.correlationId : CommonKernel.CorrelationId.generate();
     }
 
-    public void addDependency(UUID actionId) {
+    public void addDependency(CommonKernel.ResponseActionId actionId) {
         dependsOn.add(Objects.requireNonNull(actionId));
     }
 
-    public void removeDependency(UUID actionId) {
+    public void removeDependency(CommonKernel.ResponseActionId actionId) {
         dependsOn.remove(actionId);
     }
 
-    public void start() {
+    public void start(CommonKernel.UserId startedBy) {
         if (status != ActionStatus.PENDING && status != ActionStatus.ASSIGNED) {
             throw new CommonKernel.IllegalStateTransitionException(
                     "ACTION_NOT_STARTABLE",
@@ -126,9 +155,10 @@ public final class ResponseAction {
         }
         this.status = ActionStatus.IN_PROGRESS;
         this.actualStartAt = Instant.now();
+        this.reportedBy = startedBy;
     }
 
-    public void complete(String resultNotes) {
+    public void complete(CommonKernel.UserId completedBy, String resultNotes) {
         if (status != ActionStatus.IN_PROGRESS && status != ActionStatus.ON_HOLD) {
             throw new CommonKernel.IllegalStateTransitionException(
                     "ACTION_NOT_COMPLETABLE",
@@ -138,6 +168,7 @@ public final class ResponseAction {
         this.status = ActionStatus.COMPLETED;
         this.actualEndAt = Instant.now();
         this.resultNotes = resultNotes;
+        this.reportedBy = completedBy;
     }
 
     public void hold() {
@@ -188,25 +219,51 @@ public final class ResponseAction {
         return new Builder();
     }
 
+    public enum ActionType {
+        DEPLOY_CREW,
+        ISOLATE_SECTION,
+        RESTORE_POWER,
+        ASSESS_DAMAGE,
+        EVACUATE_AREA,
+        SECURE_PERIMETER,
+        REPAIR_EQUIPMENT,
+        REPLACE_EQUIPMENT,
+        VERIFY_RESTORATION,
+        COMMUNICATE_PUBLIC,
+        COORDINATE_AGENCIES,
+        LOG_INCIDENT
+    }
+
+    public enum ActionStatus {
+        PENDING,
+        ASSIGNED,
+        IN_PROGRESS,
+        ON_HOLD,
+        COMPLETED,
+        VERIFIED,
+        SKIPPED,
+        FAILED
+    }
+
     public static final class Builder {
-        private UUID id;
+        private CommonKernel.ResponseActionId id;
         private String name;
         private String description;
         private ActionType type;
         private ResponsePriority priority;
-        private Set<UUID> dependsOn = new HashSet<>();
-        private UUID targetAssetId;
-        private UUID targetGridNodeId;
-        private UUID assignedTo;
-        private UUID reportedBy;
+        private Set<CommonKernel.ResponseActionId> dependsOn = new HashSet<>();
+        private CommonKernel.AssetId targetAssetId;
+        private CommonKernel.GridNodeId targetGridNodeId;
+        private CommonKernel.UserId assignedTo;
+        private CommonKernel.UserId reportedBy;
         private Instant plannedStartAt;
         private Instant plannedEndAt;
-        private UUID correlationId;
+        private CommonKernel.CorrelationId correlationId;
 
         private Builder() {}
 
-        public Builder id(UUID id) {
-            this.id = id;
+        public Builder id(CommonKernel.ResponseActionId id) {
+            this.id = Objects.requireNonNull(id);
             return this;
         }
 
@@ -230,27 +287,27 @@ public final class ResponseAction {
             return this;
         }
 
-        public Builder addDependency(UUID actionId) {
+        public Builder addDependency(CommonKernel.ResponseActionId actionId) {
             this.dependsOn.add(Objects.requireNonNull(actionId));
             return this;
         }
 
-        public Builder targetAssetId(UUID targetAssetId) {
+        public Builder targetAssetId(CommonKernel.AssetId targetAssetId) {
             this.targetAssetId = targetAssetId;
             return this;
         }
 
-        public Builder targetGridNodeId(UUID targetGridNodeId) {
+        public Builder targetGridNodeId(CommonKernel.GridNodeId targetGridNodeId) {
             this.targetGridNodeId = targetGridNodeId;
             return this;
         }
 
-        public Builder assignedTo(UUID assignedTo) {
+        public Builder assignedTo(CommonKernel.UserId assignedTo) {
             this.assignedTo = assignedTo;
             return this;
         }
 
-        public Builder reportedBy(UUID reportedBy) {
+        public Builder reportedBy(CommonKernel.UserId reportedBy) {
             this.reportedBy = reportedBy;
             return this;
         }
@@ -265,7 +322,7 @@ public final class ResponseAction {
             return this;
         }
 
-        public Builder correlationId(UUID correlationId) {
+        public Builder correlationId(CommonKernel.CorrelationId correlationId) {
             this.correlationId = correlationId;
             return this;
         }

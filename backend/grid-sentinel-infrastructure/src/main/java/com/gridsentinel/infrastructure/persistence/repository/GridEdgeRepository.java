@@ -10,7 +10,6 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 /**
  * Repository for GridEdge entities with spatial query capabilities.
@@ -23,7 +22,7 @@ public interface GridEdgeRepository extends JpaRepository<GridEdge, CommonKernel
      */
     @Query(value = """
         SELECT e FROM GridEdge e
-        WHERE e.geometry.geometry && :envelope
+        WHERE ST_Intersects(e.geometry.geometry, :envelope)
         """)
     List<GridEdge> findByBbox(@Param("envelope") Envelope envelope);
 
@@ -32,7 +31,7 @@ public interface GridEdgeRepository extends JpaRepository<GridEdge, CommonKernel
      */
     @Query(value = """
         SELECT e FROM GridEdge e
-        WHERE e.geometry.geometry && :envelope
+        WHERE ST_Intersects(e.geometry.geometry, :envelope)
         AND e.type = :type
         """)
     List<GridEdge> findByBboxAndType(@Param("envelope") Envelope envelope,
@@ -43,7 +42,7 @@ public interface GridEdgeRepository extends JpaRepository<GridEdge, CommonKernel
      */
     @Query(value = """
         SELECT e FROM GridEdge e
-        WHERE e.geometry.geometry && :envelope
+        WHERE ST_Intersects(e.geometry.geometry, :envelope)
         AND (e.fromNodeId = :nodeId OR e.toNodeId = :nodeId)
         """)
     List<GridEdge> findByBboxAndNodeId(@Param("envelope") Envelope envelope,
@@ -54,7 +53,7 @@ public interface GridEdgeRepository extends JpaRepository<GridEdge, CommonKernel
      */
     @Query(value = """
         SELECT e FROM GridEdge e
-        WHERE e.geometry.geometry && :envelope
+        WHERE ST_Intersects(e.geometry.geometry, :envelope)
         AND e.voltageLevelKv BETWEEN :minKv AND :maxKv
         """)
     List<GridEdge> findByBboxAndVoltageRange(@Param("envelope") Envelope envelope,
@@ -64,7 +63,7 @@ public interface GridEdgeRepository extends JpaRepository<GridEdge, CommonKernel
     /**
      * Find grid edge by ID with geometry.
      */
-    Optional<GridEdge> findByIdWithGeometry(CommonKernel.GridEdgeId id);
+    Optional<GridEdge> findById(CommonKernel.GridEdgeId id);
 
     /**
      * Find edges connected to a node (for topology inspection).
@@ -80,7 +79,7 @@ public interface GridEdgeRepository extends JpaRepository<GridEdge, CommonKernel
      */
     @Query(value = """
         SELECT COUNT(e) FROM GridEdge e
-        WHERE e.geometry.geometry && :envelope
+        WHERE ST_Intersects(e.geometry.geometry, :envelope)
         """)
     long countByBbox(@Param("envelope") Envelope envelope);
 }

@@ -233,6 +233,155 @@ public class DemoEventController {
     }
 
     /**
+     * Trigger a simulated ThreatEscalatedEvent.
+     * 
+     * @param payload optional custom payload fields
+     * @return confirmation
+     */
+    @PostMapping("/threat-escalated")
+    public ResponseEntity<Map<String, Object>> triggerThreatEscalated(@RequestBody(required = false) Map<String, Object> payload) {
+        String threatEventId = "THR-DEMO-" + UUID.randomUUID().toString().substring(0, 8);
+        String previousSeverity = (String) payload.getOrDefault("previousSeverity", "MEDIUM");
+        String newSeverity = (String) payload.getOrDefault("newSeverity", "HIGH");
+        String escalationReason = (String) payload.getOrDefault("escalationReason", "DEMO: Threat escalation due to worsening conditions");
+
+        realTimeEventService.publishThreatEscalated(
+            threatEventId,
+            previousSeverity,
+            newSeverity,
+            escalationReason
+        );
+
+        return ResponseEntity.ok(Map.of(
+            "status", "DEMO_EVENT_TRIGGERED",
+            "eventType", "ThreatEscalated",
+            "threatEventId", threatEventId,
+            "previousSeverity", previousSeverity,
+            "newSeverity", newSeverity,
+            "message", "Simulated threat escalation event published to /topic/threats"
+        ));
+    }
+
+    /**
+     * Trigger a simulated SimulationCompletedEvent.
+     * 
+     * @param payload optional custom payload fields
+     * @return confirmation
+     */
+    @PostMapping("/simulation-completed")
+    public ResponseEntity<Map<String, Object>> triggerSimulationCompleted(@RequestBody(required = false) Map<String, Object> payload) {
+        String simulationId = "SIM-DEMO-" + UUID.randomUUID().toString().substring(0, 8);
+        String name = (String) payload.getOrDefault("name", "Cascading Failure Simulation");
+        String scenarioId = (String) payload.getOrDefault("scenarioId", "SCENARIO-DEMO-001");
+        String status = (String) payload.getOrDefault("status", "COMPLETED");
+        String strategyName = (String) payload.getOrDefault("strategyName", "cascading-failure-v1");
+        String strategyVersion = (String) payload.getOrDefault("strategyVersion", "1.0.0");
+        Long randomSeed = ((Number) payload.getOrDefault("randomSeed", 42L)).longValue();
+        String errorMessage = (String) payload.getOrDefault("errorMessage", null);
+
+        realTimeEventService.publishSimulationCompleted(
+            simulationId,
+            name,
+            scenarioId,
+            status,
+            strategyName,
+            strategyVersion,
+            randomSeed,
+            errorMessage
+        );
+
+        return ResponseEntity.ok(Map.of(
+            "status", "DEMO_EVENT_TRIGGERED",
+            "eventType", "SimulationCompleted",
+            "simulationId", simulationId,
+            "name", name,
+            "simulationStatus", status,
+            "message", "Simulated simulation completion event published to /topic/simulation"
+        ));
+    }
+
+    /**
+     * Trigger a simulated ResponsePlanUpdatedEvent.
+     * 
+     * @param payload optional custom payload fields
+     * @return confirmation
+     */
+    @PostMapping("/response-plan-updated")
+    public ResponseEntity<Map<String, Object>> triggerResponsePlanUpdated(@RequestBody(required = false) Map<String, Object> payload) {
+        String responsePlanId = "RSP-DEMO-" + UUID.randomUUID().toString().substring(0, 8);
+        String incidentId = (String) payload.getOrDefault("incidentId", "INC-DEMO-001");
+        String name = (String) payload.getOrDefault("name", "Containment Plan Alpha");
+        String previousStatus = (String) payload.getOrDefault("previousStatus", "DRAFT");
+        String newStatus = (String) payload.getOrDefault("newStatus", "APPROVED");
+        String actorId = (String) payload.getOrDefault("actorId", "INCIDENT_COMMANDER-001");
+        String action = (String) payload.getOrDefault("action", "APPROVED");
+
+        realTimeEventService.publishResponsePlanUpdated(
+            responsePlanId,
+            incidentId,
+            name,
+            previousStatus,
+            newStatus,
+            actorId,
+            action
+        );
+
+        return ResponseEntity.ok(Map.of(
+            "status", "DEMO_EVENT_TRIGGERED",
+            "eventType", "ResponsePlanUpdated",
+            "responsePlanId", responsePlanId,
+            "incidentId", incidentId,
+            "previousStatus", previousStatus,
+            "newStatus", newStatus,
+            "action", action,
+            "message", "Simulated response plan update published to /topic/incidents"
+        ));
+    }
+
+    /**
+     * Trigger a simulated RecoveryProgressUpdatedEvent.
+     * 
+     * @param payload optional custom payload fields
+     * @return confirmation
+     */
+    @PostMapping("/recovery-progress-updated")
+    public ResponseEntity<Map<String, Object>> triggerRecoveryProgressUpdated(@RequestBody(required = false) Map<String, Object> payload) {
+        String recoveryStateId = "REC-DEMO-" + UUID.randomUUID().toString().substring(0, 8);
+        String incidentId = (String) payload.getOrDefault("incidentId", "INC-DEMO-001");
+        String previousPhase = (String) payload.getOrDefault("previousPhase", "STABILIZATION");
+        String newPhase = (String) payload.getOrDefault("newPhase", "REPAIR");
+        double previousProgress = ((Number) payload.getOrDefault("previousProgress", 0.3)).doubleValue();
+        double newProgress = ((Number) payload.getOrDefault("newProgress", 0.6)).doubleValue();
+        String milestoneId = (String) payload.getOrDefault("milestoneId", null);
+        String milestoneName = (String) payload.getOrDefault("milestoneName", null);
+        Boolean milestoneCompleted = (Boolean) payload.getOrDefault("milestoneCompleted", false);
+
+        realTimeEventService.publishRecoveryProgressUpdated(
+            recoveryStateId,
+            incidentId,
+            previousPhase,
+            newPhase,
+            previousProgress,
+            newProgress,
+            milestoneId,
+            milestoneName,
+            milestoneCompleted
+        );
+
+        return ResponseEntity.ok(Map.of(
+            "status", "DEMO_EVENT_TRIGGERED",
+            "eventType", "RecoveryProgressUpdated",
+            "recoveryStateId", recoveryStateId,
+            "incidentId", incidentId,
+            "previousPhase", previousPhase,
+            "newPhase", newPhase,
+            "previousProgress", previousProgress,
+            "newProgress", newProgress,
+            "message", "Simulated recovery progress update published to /topic/recovery"
+        ));
+    }
+
+    /**
      * Trigger a full demo sequence: Threat -> Incident -> State Change -> Risk Update -> Asset Change.
      * 
      * @return confirmation with all triggered events
@@ -258,6 +407,18 @@ public class DemoEventController {
         
         // 5. Asset Status Changed
         triggerAssetStatusChanged(Map.of());
+        
+        // 6. Threat Escalated
+        triggerThreatEscalated(Map.of());
+        
+        // 7. Simulation Completed
+        triggerSimulationCompleted(Map.of());
+        
+        // 8. Response Plan Updated
+        triggerResponsePlanUpdated(Map.of());
+        
+        // 9. Recovery Progress Updated
+        triggerRecoveryProgressUpdated(Map.of());
 
         return ResponseEntity.ok(Map.of(
             "status", "DEMO_SEQUENCE_TRIGGERED",
@@ -266,14 +427,20 @@ public class DemoEventController {
                 "IncidentCreated",
                 "IncidentStateChanged",
                 "RiskScoreUpdated",
-                "GridAssetStatusChanged"
+                "GridAssetStatusChanged",
+                "ThreatEscalated",
+                "SimulationCompleted",
+                "ResponsePlanUpdated",
+                "RecoveryProgressUpdated"
             },
             "message", "Full demo sequence triggered - check Command Center and Live Grid Map for real-time updates",
             "topics", new String[]{
                 "/topic/threats",
                 "/topic/incidents",
                 "/topic/risk",
-                "/topic/grid"
+                "/topic/grid",
+                "/topic/simulation",
+                "/topic/recovery"
             }
         ));
     }

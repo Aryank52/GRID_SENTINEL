@@ -32,15 +32,15 @@ class AssetTest {
                 .installedAt(Instant.now().minusSeconds(86400))
                 .build();
 
-        assertThat(asset.id()).isEqualTo(id);
-        assertThat(asset.name()).isEqualTo("Test Asset");
-        assertThat(asset.type()).isEqualTo(AssetType.SUBSTATION);
-        assertThat(asset.criticality()).isEqualTo(criticality);
-        assertThat(asset.healthIndex()).isEqualTo(health);
-        assertThat(asset.redundancyLevel()).isEqualTo(1);
-        assertThat(asset.geometry()).isEqualTo(geometry);
-        assertThat(asset.description()).isEqualTo("Test asset");
-        assertThat(asset.version()).isEqualTo(0);
+        assertThat(asset.getId()).isEqualTo(id);
+        assertThat(asset.getName()).isEqualTo("Test Asset");
+        assertThat(asset.getType()).isEqualTo(AssetType.SUBSTATION);
+        assertThat(asset.getCriticality()).isEqualTo(criticality);
+        assertThat(asset.getHealthIndex()).isEqualTo(health);
+        assertThat(asset.getRedundancyLevel()).isEqualTo(1);
+        assertThat(asset.getGeometry()).isEqualTo(geometry);
+        assertThat(asset.getDescription()).isEqualTo("Test asset");
+        assertThat(asset.getVersion()).isEqualTo(0);
     }
 
     @Test
@@ -120,7 +120,7 @@ class AssetTest {
                 .redundancyLevel(-5)
                 .build();
 
-        assertThat(asset.redundancyLevel()).isEqualTo(0);
+        assertThat(asset.getRedundancyLevel()).isEqualTo(0);
     }
 
     @Test
@@ -134,15 +134,15 @@ class AssetTest {
                 .geometry(TestGeometryFactory.point(0, 0))
                 .build();
 
-        int oldVersion = asset.version();
+        int oldVersion = asset.getVersion();
         CommonKernel.HealthIndex newHealth = CommonKernel.HealthIndex.of(0.5);
         Instant inspectedAt = Instant.now();
 
         asset.updateHealth(newHealth, inspectedAt);
 
-        assertThat(asset.healthIndex()).isEqualTo(newHealth);
-        assertThat(asset.lastInspectedAt()).isEqualTo(inspectedAt);
-        assertThat(asset.version()).isEqualTo(oldVersion + 1);
+        assertThat(asset.getHealthIndex()).isEqualTo(newHealth);
+        assertThat(asset.getLastInspectedAt()).isEqualTo(inspectedAt);
+        assertThat(asset.getVersion()).isEqualTo(oldVersion + 1);
     }
 
     @Test
@@ -156,12 +156,12 @@ class AssetTest {
                 .geometry(TestGeometryFactory.point(0, 0))
                 .build();
 
-        int oldVersion = asset.version();
+        int oldVersion = asset.getVersion();
 
         asset.updateCriticality(CommonKernel.Criticality.MISSION_CRITICAL);
 
-        assertThat(asset.criticality()).isEqualTo(CommonKernel.Criticality.MISSION_CRITICAL);
-        assertThat(asset.version()).isEqualTo(oldVersion + 1);
+        assertThat(asset.getCriticality()).isEqualTo(CommonKernel.Criticality.MISSION_CRITICAL);
+        assertThat(asset.getVersion()).isEqualTo(oldVersion + 1);
     }
 
     @Test
@@ -175,13 +175,13 @@ class AssetTest {
                 .geometry(TestGeometryFactory.point(0, 0))
                 .build();
 
-        int oldVersion = asset.version();
+        int oldVersion = asset.getVersion();
         CommonKernel.GeometryValueObject newGeometry = TestGeometryFactory.point(10, 10);
 
         asset.updateGeometry(newGeometry);
 
-        assertThat(asset.geometry()).isEqualTo(newGeometry);
-        assertThat(asset.version()).isEqualTo(oldVersion + 1);
+        assertThat(asset.getGeometry()).isEqualTo(newGeometry);
+        assertThat(asset.getVersion()).isEqualTo(oldVersion + 1);
     }
 
     @Test
@@ -196,12 +196,12 @@ class AssetTest {
                 .build();
 
         CommonKernel.GridNodeId nodeId = CommonKernel.GridNodeId.generate();
-        int oldVersion = asset.version();
+        int oldVersion = asset.getVersion();
 
         asset.associateWithGridNode(nodeId);
 
-        assertThat(asset.gridNodeId()).isEqualTo(nodeId);
-        assertThat(asset.version()).isEqualTo(oldVersion + 1);
+        assertThat(asset.getGridNodeId()).isEqualTo(nodeId);
+        assertThat(asset.getVersion()).isEqualTo(oldVersion + 1);
     }
 
     @Test
@@ -230,7 +230,7 @@ class AssetTest {
                 .build();
 
         assertThat(degradedAsset.isHealthy()).isFalse();
-        assertThat(degradedAsset.healthIndex().isDegraded()).isTrue();
+        assertThat(degradedAsset.getHealthIndex().isDegraded()).isTrue();
     }
 
     @Test
@@ -245,7 +245,7 @@ class AssetTest {
                 .build();
 
         assertThat(criticalAsset.isHealthy()).isFalse();
-        assertThat(criticalAsset.healthIndex().isCritical()).isTrue();
+        assertThat(criticalAsset.getHealthIndex().isCritical()).isTrue();
     }
 
     @Test
@@ -349,10 +349,10 @@ class AssetTest {
                 .geometry(TestGeometryFactory.point(0, 0))
                 .build();
 
-        assertThat(asset.redundancyLevel()).isEqualTo(0);
-        assertThat(asset.description()).isNull();
-        assertThat(asset.installedAt()).isNull();
-        assertThat(asset.lastInspectedAt()).isNull();
-        assertThat(asset.gridNodeId()).isNull();
+        assertThat(asset.getRedundancyLevel()).isEqualTo(0);
+        assertThat(asset.getDescription()).isNull();
+        assertThat(asset.getInstalledAt()).isNull();
+        assertThat(asset.getLastInspectedAt()).isNull();
+        assertThat(asset.getGridNodeId()).isNull();
     }
 }

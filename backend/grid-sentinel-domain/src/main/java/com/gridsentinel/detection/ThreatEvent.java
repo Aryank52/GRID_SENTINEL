@@ -15,7 +15,6 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
-import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -94,16 +93,8 @@ public class ThreatEvent {
     @Setter(AccessLevel.PRIVATE)
     private String rationale; // Why the system thinks it matters
 
-    // @ElementCollection - Disabled due to Hibernate enum issue with inner enum
-    // @CollectionTable(name = "threat_event_evidence", joinColumns = @JoinColumn(name = "threat_event_id"))
-    // @AttributeOverrides({
-    //     @AttributeOverride(name = "type", column = @Column(name = "evidence_type")),
-    //     @AttributeOverride(name = "value", column = @Column(name = "evidence_value"))
-    // })
-    // @Setter(AccessLevel.PRIVATE)
-    // private Set<Evidence> supportingEvidence = new HashSet<>();
-    
-    @Transient
+    @ElementCollection
+    @CollectionTable(name = "threat_evidence", joinColumns = @JoinColumn(name = "threat_event_id"))
     @Setter(AccessLevel.PRIVATE)
     private Set<Evidence> supportingEvidence = new HashSet<>();
 
@@ -118,7 +109,10 @@ public class ThreatEvent {
     @Setter(AccessLevel.PRIVATE)
     private ThreatStatus status = ThreatStatus.NEW;
 
-    @Transient
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "value", column = @Column(name = "correlation_id", columnDefinition = "uuid"))
+    })
     @Setter(AccessLevel.PRIVATE)
     private CommonKernel.CorrelationId correlationId;
 

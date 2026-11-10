@@ -11,9 +11,11 @@ import type {
 } from '@spatial/spatial';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
+const SPATIAL_API_BASE_URL = import.meta.env.VITE_SPATIAL_API_URL || '/api';
 
 class ApiClient {
   private client: AxiosInstance;
+  private spatialClient: AxiosInstance;
   private refreshTokenPromise: Promise<string> | null = null;
 
   constructor() {
@@ -25,48 +27,62 @@ class ApiClient {
       },
     });
 
+    this.spatialClient = axios.create({
+      baseURL: SPATIAL_API_BASE_URL,
+      timeout: 30000,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
     this.setupInterceptors();
   }
 
   private setupInterceptors() {
     // Request interceptor - add auth token
-    this.client.interceptors.request.use(
-      (config: InternalAxiosRequestConfig) => {
-        const token = localStorage.getItem('access_token');
-        if (token) {
-          config.headers.Authorization = `Bearer ${token}`;
-        }
-        // Add correlation ID for tracing
-        config.headers['X-Correlation-ID'] = crypto.randomUUID();
-        return config;
-      },
-      (error) => Promise.reject(error)
-    );
+    const requestInterceptor = (config: InternalAxiosRequestConfig) => {
+      const token = localStorage.getItem('access_token');
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+      // Add correlation ID for tracing
+      config.headers['X-Correlation-ID'] = crypto.randomUUID();
+      return config;
+    };
+
+    this.client.interceptors.request.use(requestInterceptor, (error) => Promise.reject(error));
+    this.spatialClient.interceptors.request.use(requestInterceptor, (error) => Promise.reject(error));
 
     // Response interceptor - handle token refresh
+    const responseInterceptor = async (error: AxiosError) => {
+      const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
+
+      if (error.response?.status === 401 && !originalRequest._retry) {
+        originalRequest._retry = true;
+
+        try {
+          const newToken = await this.refreshAccessToken();
+          originalRequest.headers.Authorization = `Bearer ${newToken}`;
+          return this.client(originalRequest);
+        } catch {
+          // Refresh failed - redirect to login
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('refresh_token');
+          window.location.href = '/login';
+          return Promise.reject(error);
+        }
+      }
+
+      return Promise.reject(error);
+    };
+
     this.client.interceptors.response.use(
       (response) => response,
-      async (error: AxiosError) => {
-        const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
-
-        if (error.response?.status === 401 && !originalRequest._retry) {
-          originalRequest._retry = true;
-
-          try {
-            const newToken = await this.refreshAccessToken();
-            originalRequest.headers.Authorization = `Bearer ${newToken}`;
-            return this.client(originalRequest);
-          } catch {
-            // Refresh failed - redirect to login
-            localStorage.removeItem('access_token');
-            localStorage.removeItem('refresh_token');
-            window.location.href = '/login';
-            return Promise.reject(error);
-          }
-        }
-
-        return Promise.reject(error);
-      }
+      responseInterceptor
+    );
+    this.spatialClient.interceptors.response.use(
+      (response) => response,
+      responseInterceptor
     );
   }
 
@@ -126,7 +142,7 @@ class ApiClient {
    * Get grid nodes as GeoJSON FeatureCollection
    */
   async getGridNodes(params?: SpatialQueryParams): Promise<GeoJsonFeatureCollection<GridNodeProperties>> {
-    const response = await this.client.get<GeoJsonFeatureCollection<GridNodeProperties>>('/spatial/grid/nodes', { params });
+    const response = await this.spatialClient.get<GeoJsonFeatureCollection<GridNodeProperties>>('/spatial/grid/nodes', { params });
     return response.data;
   }
 
@@ -134,7 +150,7 @@ class ApiClient {
    * Get grid edges as GeoJSON FeatureCollection
    */
   async getGridEdges(params?: SpatialQueryParams): Promise<GeoJsonFeatureCollection<GridEdgeProperties>> {
-    const response = await this.client.get<GeoJsonFeatureCollection<GridEdgeProperties>>('/spatial/grid/edges', { params });
+    const response = await this.spatialClient.get<GeoJsonFeatureCollection<GridEdgeProperties>>('/spatial/grid/edges', { params });
     return response.data;
   }
 
@@ -142,7 +158,7 @@ class ApiClient {
    * Get assets as GeoJSON FeatureCollection
    */
   async getAssets(params?: SpatialQueryParams): Promise<GeoJsonFeatureCollection<AssetProperties>> {
-    const response = await this.client.get<GeoJsonFeatureCollection<AssetProperties>>('/spatial/assets', { params });
+    const response = await this.spatialClient.get<GeoJsonFeatureCollection<AssetProperties>>('/spatial/assets', { params });
     return response.data;
   }
 
@@ -150,7 +166,7 @@ class ApiClient {
    * Get threat events as GeoJSON FeatureCollection
    */
   async getThreats(params?: SpatialQueryParams): Promise<GeoJsonFeatureCollection<ThreatEventProperties>> {
-    const response = await this.client.get<GeoJsonFeatureCollection<ThreatEventProperties>>('/spatial/threats', { params });
+    const response = await this.spatialClient.get<GeoJsonFeatureCollection<ThreatEventProperties>>('/spatial/threats', { params });
     return response.data;
   }
 
@@ -158,7 +174,7 @@ class ApiClient {
    * Get incidents as GeoJSON FeatureCollection
    */
   async getIncidents(params?: SpatialQueryParams): Promise<GeoJsonFeatureCollection<IncidentProperties>> {
-    const response = await this.client.get<GeoJsonFeatureCollection<IncidentProperties>>('/spatial/incidents', { params });
+    const response = await this.spatialClient.get<GeoJsonFeatureCollection<IncidentProperties>>('/spatial/incidents', { params });
     return response.data;
   }
 
@@ -166,7 +182,7 @@ class ApiClient {
    * Get risk scores as GeoJSON FeatureCollection
    */
   async getRiskScores(params?: SpatialQueryParams): Promise<GeoJsonFeatureCollection<RiskScoreProperties>> {
-    const response = await this.client.get<GeoJsonFeatureCollection<RiskScoreProperties>>('/spatial/risk', { params });
+    const response = await this.spatialClient.get<GeoJsonFeatureCollection<RiskScoreProperties>>('/spatial/risk', { params });
     return response.data;
   }
 }

@@ -151,6 +151,32 @@ public class Asset {
         return redundancyLevel > 0;
     }
 
+    public boolean isHealthy() {
+        return healthIndex != null && healthIndex.value() > 0.7;
+    }
+
+    public double redundancyFactor() {
+        return switch (redundancyLevel) {
+            case 0 -> 0.0;
+            case 1 -> 0.33;
+            case 2 -> 0.66;
+            default -> 0.75;
+        };
+    }
+
+    public void associateWithGridNode(CommonKernel.GridNodeId gridNodeId) {
+        this.gridNodeId = Objects.requireNonNull(gridNodeId);
+        this.updatedAt = Instant.now();
+        this.version++;
+    }
+
+    public void updateHealth(CommonKernel.HealthIndex healthIndex, Instant inspectedAt) {
+        this.healthIndex = Objects.requireNonNull(healthIndex, "HealthIndex cannot be null");
+        this.lastInspectedAt = Objects.requireNonNull(inspectedAt, "Inspection time cannot be null");
+        this.updatedAt = Instant.now();
+        this.version++;
+    }
+
     public void addDomainEvent(CommonKernel.DomainEvent event) {
         domainEvents.add(Objects.requireNonNull(event));
     }

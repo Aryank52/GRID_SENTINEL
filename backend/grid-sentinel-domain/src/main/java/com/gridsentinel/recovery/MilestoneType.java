@@ -21,6 +21,7 @@ public enum MilestoneType {
     REPAIR_START,
     REPAIR_COMPLETE,
     REPLACEMENT,
+    EQUIPMENT_REPLACEMENT,
     TESTING,
     RE_ENERGIZATION,
 

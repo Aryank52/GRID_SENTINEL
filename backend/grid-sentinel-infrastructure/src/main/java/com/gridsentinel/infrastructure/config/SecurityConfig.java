@@ -2,6 +2,8 @@ package com.gridsentinel.infrastructure.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -39,6 +41,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/auth/**", "/actuator/health", "/actuator/info",
                                 "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                        .requestMatchers("/api/spatial/**").permitAll()
+                        .requestMatchers("/api/v1/dev/realtime/**").permitAll()
                         .requestMatchers("/api/v1/assets/**").hasAnyRole("OPERATOR", "DISPATCHER", "INCIDENT_COMMANDER",
                                 "RISK_ANALYST", "PLANNER", "SUPERVISOR", "MANAGER", "DIRECTOR", "ADMINISTRATOR", "VIEWER", "EXECUTIVE_VIEWER")
                         .requestMatchers("/api/v1/grid/**").hasAnyRole("OPERATOR", "DISPATCHER", "INCIDENT_COMMANDER",
@@ -71,6 +75,11 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder(12);
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
     }
 
     @Bean
