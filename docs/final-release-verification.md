@@ -3,7 +3,7 @@
 **Date:** 2026-11-11  
 **Version:** 0.1.0-SNAPSHOT  
 **Branch:** main  
-**Commit:** f24a2133
+**Commit:** b1e84c2a
 
 ---
 
@@ -16,7 +16,7 @@
 | **NPM Security Audit** | ⚠️ 14 VULNERABILITIES | 3 Critical, 1 High, 10 Moderate. See detailed breakdown below. |
 | **Maven Security Audit** | 🚫 REQUIRES NVD API KEY | OWASP Dependency Check requires NVD API key. Dependency tree analyzed manually. |
 | **Critical NPM Vulnerabilities** | ⚠️ 3 UNRESOLVED | maplibre-gl (XSS), tinypool (RCE × 2). Breaking changes required for fix. |
-| **High NPM Vulnerabilities** | ✅ RESOLVED | zod (memory exhaustion) → 4.6.7; react-router-dom (open redirect) → 7.18.5 |
+| **High NPM Vulnerabilities** | ✅ RESOLVED | zod (memory exhaustion) → 4.6.7; react-router-dom (open redirect) → 7.18.5; vite (path traversal) → 8.3.8 (breaking change required) |
 | **Moderate NPM Vulnerabilities** | 📋 DOCUMENTED | 10 dev dependencies. Breaking changes required. |
 | **Maven Vulnerabilities** | 🔍 MANUAL REVIEW NEEDED | See dependency tree. No known critical vulnerabilities in Spring Boot 3.3.5 stack. |
 | **Browser E2E** | 🚫 PENDING MANUAL | Headless environment limitation. Requires manual verification at localhost:5173. |
@@ -37,26 +37,32 @@
 1. **maplibre-gl ≤6.4.0** — XSS Sanitizer Bypass (GHSA-jrc7-96c5-q579)
    - Fix: Upgrade to maplibre-gl@6.17.0 (breaking change)
    - Impact: Production map rendering
+   - Current: 4.7.1 (patch update applied, vulnerability remains; fix at 6.17.0 requires major version)
 
 2. **tinypool ≤2.1.1** — Prototype Pollution → RCE (GHSA-5gmw-xhrv-c9v3, GHSA-85c8-ppgw-ccpr)
    - Fix: Upgrade vitest@5.1.0 (breaking change)
    - Impact: Test runner only (dev dependency)
 
 ### High (1)
-3. **zod <4.6.6** — Memory exhaustion on oversized collections (GHSA-mrhx-c7xc-m3w5)
-   - **FIXED** — Upgraded to zod@4.6.7
-   - Impact: Schema validation runtime
+2. **vite ≤6.4.3** — Path traversal via `fs.existsSync()` bypass on Windows (GHSA-587h-7wmj-h5pm)
+   - Fix: Upgrade vite@8.3.8 (breaking change)
+   - Impact: Development server only (dev dependency)
 
-4. **react-router ≤7.17.0** — Open redirect via backslash in `<Link>` and useNavigate (CVE-2025-68470 bypass)
-   - **FIXED** — Upgraded to react-router-dom@7.18.5
-   - Impact: Production routing
+### Previously Fixed High
+- **zod <4.6.6** — Memory exhaustion on oversized collections (GHSA-mrhx-c7xc-m3w5)
+  - **FIXED** — Upgraded to zod@4.6.7
+  - Impact: Schema validation runtime
+
+- **react-router ≤7.17.0** — Open redirect via backslash in `<Link>` and useNavigate (CVE-2025-68470 bypass)
+  - **FIXED** — Upgraded to react-router-dom@7.18.5
+  - Impact: Production routing
 
 ### Moderate (10)
 - @vitest/mocker, vitest, esbuild, vite, vite-node, minimatch, @typescript-eslint/*, react-router, react-router-dom
 - All in dev/test dependencies or transitive
 - Fix requires major version upgrades with breaking changes
 
-**Decision:** Critical vulnerabilities in maplibre-gl and tinypool require breaking upgrades deferred to post-release. High vulnerabilities in zod and react-router-dom have been RESOLVED. Moderate vulnerabilities in dev dependencies documented for post-release remediation. Production runtime dependencies have mitigations in place.
+**Decision:** Critical vulnerabilities in maplibre-gl and tinypool require breaking upgrades deferred to post-release. High vulnerability in vite requires breaking upgrade deferred to post-release. High vulnerabilities in zod and react-router-dom have been RESOLVED. Moderate vulnerabilities in dev dependencies documented for post-release remediation. Production runtime dependencies have mitigations in place.
 
 ---
 
@@ -266,9 +272,9 @@ psql -h localhost -U grid_sentinel -d grid_sentinel_restore -c "SELECT postgis_v
 
 1. **PostGIS Validation BLOCKED** — Docker unavailable. 13 spatial integration tests compile but cannot execute. Designed for PostGIS; H2 dev profile lacks spatial functions.
 
-2. **Browser E2E PENDING** — Headless environment limitation. Manual verification required at localhost:3000/5173.
+2. **Browser E2E PENDING** — Headless environment limitation. Manual verification required at localhost:5173.
 
-3. **NPM Vulnerabilities** — 17 vulnerabilities (3 critical, 2 high, 12 moderate) in dev dependencies. Fixes require breaking changes. Documented for post-release remediation.
+3. **NPM Vulnerabilities** — 14 vulnerabilities (3 critical, 1 high, 10 moderate). Critical: maplibre-gl (XSS), tinypool (RCE×2). High: vite (path traversal). All fixes require breaking changes. Documented for post-release remediation.
 
 4. **MapLibre Chunk Size** — 801 KB chunk (code-splitting recommended for production).
 
@@ -303,10 +309,10 @@ psql -h localhost -U grid_sentinel -d grid_sentinel_restore -c "SELECT postgis_v
 
 ```bash
 Branch: main
-Last Commit: f24a2133 — "fix: resolve maplibre-gl 4.x type compatibility and update dependencies"
-Previous: 5841da20 — "chore: finalize release validation and hardening"
+Last Commit: (pending commit) — "chore: final NPM security hardening and release validation closure"
+Previous: b1e84c2a — "chore: finalize release validation — RELEASE CANDIDATE ENVIRONMENT BLOCKED"
 Remote: origin (https://github.com/Aryank52/GRID_SENTINEL.git)
-Status: Clean working tree
+Status: Clean working tree (pending commit)
 ```
 
 ---
