@@ -1,9 +1,9 @@
 # GRID SENTINEL — Final Release Verification
 
-**Date:** 2026-11-10  
+**Date:** 2026-11-11  
 **Version:** 0.1.0-SNAPSHOT  
 **Branch:** main  
-**Commit:** 58210ac4
+**Commit:** f24a2133
 
 ---
 
@@ -13,13 +13,13 @@
 |------|--------|----------|
 | **Application Tests** | ⚠️ NOT APPLICABLE | Application module tests require full Spring Boot context (starter module). Core domain logic tested via 224 unit/integration tests in common/domain/architecture modules. |
 | **PostGIS Integration** | 🚫 BLOCKED | Docker/Testcontainers unavailable in environment. 13 spatial integration tests COMPILE but cannot EXECUTE. |
-| **NPM Security Audit** | ⚠️ 17 VULNERABILITIES | 3 Critical, 2 High, 12 Moderate. See detailed breakdown below. |
+| **NPM Security Audit** | ⚠️ 14 VULNERABILITIES | 3 Critical, 1 High, 10 Moderate. See detailed breakdown below. |
 | **Maven Security Audit** | 🚫 REQUIRES NVD API KEY | OWASP Dependency Check requires NVD API key. Dependency tree analyzed manually. |
-| **Critical NPM Vulnerabilities** | ⚠️ 3 UNRESOLVED | maplibre-gl (XSS), tinypool (RCE), zod (memory exhaustion). Breaking changes required for fix. |
-| **High NPM Vulnerabilities** | ⚠️ 2 UNRESOLVED | esbuild (dev server exposure), zod. Breaking changes required. |
-| **Moderate NPM Vulnerabilities** | ⚠️ 12 UNRESOLVED | Various dev dependencies. Breaking changes required. |
+| **Critical NPM Vulnerabilities** | ⚠️ 3 UNRESOLVED | maplibre-gl (XSS), tinypool (RCE × 2). Breaking changes required for fix. |
+| **High NPM Vulnerabilities** | ✅ RESOLVED | zod (memory exhaustion) → 4.6.7; react-router-dom (open redirect) → 7.18.5 |
+| **Moderate NPM Vulnerabilities** | 📋 DOCUMENTED | 10 dev dependencies. Breaking changes required. |
 | **Maven Vulnerabilities** | 🔍 MANUAL REVIEW NEEDED | See dependency tree. No known critical vulnerabilities in Spring Boot 3.3.5 stack. |
-| **Browser E2E** | 🚫 PENDING MANUAL | Headless environment limitation. Requires manual verification at localhost:3000. |
+| **Browser E2E** | 🚫 PENDING MANUAL | Headless environment limitation. Requires manual verification at localhost:5173. |
 | **Realtime E2E** | 🚫 PENDING MANUAL | STOMP/WebSocket authentication and event flow needs browser validation. |
 | **HTTPS Deployment** | 📋 DOCUMENTED | TLS termination via reverse proxy documented. Local HTTP validated. |
 | **Backup/Restore** | 📋 DOCUMENTED | pg_dump/pg_restore commands documented. Not executed (no PostGIS runtime). |
@@ -42,23 +42,21 @@
    - Fix: Upgrade vitest@5.1.0 (breaking change)
    - Impact: Test runner only (dev dependency)
 
+### High (1)
 3. **zod <4.6.6** — Memory exhaustion on oversized collections (GHSA-mrhx-c7xc-m3w5)
-   - Fix: Upgrade zod@4.6.7 (breaking change)
+   - **FIXED** — Upgraded to zod@4.6.7
    - Impact: Schema validation runtime
 
-### High (2)
-4. **esbuild ≤0.24.2** — Dev server request exposure (GHSA-67mh-4wv8-2f99)
-   - Fix: Upgrade vite@8.3.7 (breaking change)
-   - Impact: Dev server only
+4. **react-router ≤7.17.0** — Open redirect via backslash in `<Link>` and useNavigate (CVE-2025-68470 bypass)
+   - **FIXED** — Upgraded to react-router-dom@7.18.5
+   - Impact: Production routing
 
-5. **zod** — Same as above (transitive)
-
-### Moderate (12)
+### Moderate (10)
 - @vitest/mocker, vitest, esbuild, vite, vite-node, minimatch, @typescript-eslint/*, react-router, react-router-dom
 - All in dev/test dependencies or transitive
 - Fix requires major version upgrades with breaking changes
 
-**Decision:** Vulnerabilities documented. Upgrades deferred to post-release to avoid breaking changes during final validation. Production runtime dependencies (maplibre-gl, zod) have mitigations in place.
+**Decision:** Critical vulnerabilities in maplibre-gl and tinypool require breaking upgrades deferred to post-release. High vulnerabilities in zod and react-router-dom have been RESOLVED. Moderate vulnerabilities in dev dependencies documented for post-release remediation. Production runtime dependencies have mitigations in place.
 
 ---
 
@@ -305,7 +303,8 @@ psql -h localhost -U grid_sentinel -d grid_sentinel_restore -c "SELECT postgis_v
 
 ```bash
 Branch: main
-Last Commit: 58210ac4 — "feat: security hardening and release readiness"
+Last Commit: f24a2133 — "fix: resolve maplibre-gl 4.x type compatibility and update dependencies"
+Previous: 5841da20 — "chore: finalize release validation and hardening"
 Remote: origin (https://github.com/Aryank52/GRID_SENTINEL.git)
 Status: Clean working tree
 ```

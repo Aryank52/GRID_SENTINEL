@@ -174,8 +174,8 @@ The end-to-end workflow has been verified through the comprehensive test suite:
 
 ### Final Release Validation — COMPLETED (Environment Blocked)
 
-**Date:** 2026-11-10  
-**Commit:** 58210ac4  
+**Date:** 2026-11-11  
+**Commit:** f24a2133  
 **Branch:** main
 
 #### Validation Summary
@@ -184,7 +184,7 @@ The end-to-end workflow has been verified through the comprehensive test suite:
 |------|--------|----------|
 | **Backend Tests** | ✅ 224 PASS | Common: 11, Domain: 186, Architecture: 27 |
 | **PostGIS Integration** | 🚫 BLOCKED | Docker unavailable. 13 tests compile, cannot execute. |
-| **NPM Security Audit** | ⚠️ 17 VULNS | 3 Critical, 2 High, 12 Moderate. Documented for post-release fix. |
+| **NPM Security Audit** | ⚠️ 14 VULNS | 3 Critical, 1 High, 10 Moderate. Documented for post-release fix. |
 | **Maven Security Audit** | 🔍 MANUAL REVIEW | Spring Boot 3.3.5 stack current. No known CVEs in prod deps. |
 | **Frontend Typecheck** | ✅ PASS | `npm run typecheck` — 0 errors |
 | **Frontend Build** | ✅ PASS | `npm run build` — Success (MapLibre 801 KB warning) |
@@ -217,10 +217,11 @@ The end-to-end workflow has been verified through the comprehensive test suite:
 **Ready for:** Manual browser validation, production deployment with PostGIS, PostGIS integration test execution when Docker available.
 
 #### NPM Vulnerabilities (Deferred to Post-Release)
-- **Critical (3):** maplibre-gl (XSS), tinypool (RCE), zod (memory exhaustion)
-- **High (2):** esbuild (dev server), zod
-- **Moderate (12):** Various dev dependencies
-- **Action:** Fixes require breaking changes. Documented for post-release remediation.
+- **Critical (3):** maplibre-gl (XSS), tinypool (RCE × 2)
+- **High (1):** zod (memory exhaustion) — **FIXED** → 4.6.7
+- **High (1):** react-router-dom (open redirect) — **FIXED** → 7.18.5
+- **Moderate (10):** Various dev dependencies
+- **Action:** Critical fixes require breaking changes. Documented for post-release remediation.
 
 #### Maven Dependencies
 - Spring Boot 3.3.5, Spring Security 6.3.4, Hibernate 6.5.3, PostgreSQL 42.7.4, Jackson 2.17.2, JWT 0.12.5, Flyway 11.3.0
@@ -229,7 +230,8 @@ The end-to-end workflow has been verified through the comprehensive test suite:
 #### Git Status
 ```
 Branch: main
-Last Commit: 58210ac4 — "feat: security hardening and release readiness"
+Last Commit: f24a2133 — "fix: resolve maplibre-gl 4.x type compatibility and update dependencies"
+Previous: 5841da20 — "chore: finalize release validation and hardening"
 Remote: origin (https://github.com/Aryank52/GRID_SENTINEL.git)
 Status: Clean working tree
 ```
